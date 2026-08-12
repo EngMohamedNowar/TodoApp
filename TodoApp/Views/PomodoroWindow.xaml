@@ -1,0 +1,81 @@
+<Window x:Class="TodoApp.Views.PomodoroWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:behaviors="clr-namespace:TodoApp.Behaviors"
+        Title="Focus Timer" Height="480" Width="360"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource WindowBrush}"
+        Icon="/Assets/app.ico"
+        FontFamily="Segoe UI"
+        Opacity="0">
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.2"/>
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </Window.Triggers>
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header: settings, mode pill, stats -->
+        <Grid Grid.Row="0" Margin="0,4,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="⚙" FontSize="16" Width="30" Height="30" HorizontalAlignment="Left"
+                    Style="{StaticResource IconButtonStyle}" ToolTip="Timer settings" Command="{Binding OpenSettingsCommand}"/>
+
+            <Border Grid.Column="1" CornerRadius="12" Padding="14,6" Background="{StaticResource InputBrush}">
+                <TextBlock Text="{Binding ModeLabel}" FontSize="12" FontWeight="Bold"
+                           Foreground="{Binding Mode, Converter={StaticResource PomodoroModeToBrushConverter}}"/>
+            </Border>
+
+            <Button Grid.Column="2" Content="📊" FontSize="14" Width="30" Height="30" HorizontalAlignment="Right"
+                    Style="{StaticResource IconButtonStyle}" ToolTip="Focus stats" Command="{Binding OpenStatsCommand}"/>
+        </Grid>
+
+        <!-- Big countdown -->
+        <TextBlock Grid.Row="1" Text="{Binding TimeDisplay}" FontFamily="Consolas" FontSize="72" FontWeight="Bold"
+                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,22,0,22"/>
+
+        <!-- Progress bar -->
+        <Border Grid.Row="2" Height="8" CornerRadius="4" Background="{StaticResource InputBrush}" Margin="0,0,0,28">
+            <Border HorizontalAlignment="Left" CornerRadius="4"
+                    Background="{Binding Mode, Converter={StaticResource PomodoroModeToBrushConverter}}"
+                    behaviors:SmoothAnimation.TargetWidth="{Binding ProgressPercentage, Converter={StaticResource PercentageToWidthConverter}, ConverterParameter=296}"/>
+        </Border>
+
+        <!-- Controls -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+            <Button Content="Reset" Width="84" Style="{StaticResource SecondaryButtonStyle}"
+                    Margin="0,0,10,0" Command="{Binding ResetCommand}"/>
+            <Button Content="{Binding StartPauseLabel}" Width="108" Style="{StaticResource PrimaryButtonStyle}"
+                    Command="{Binding StartPauseCommand}" Margin="0,0,10,0"/>
+            <Button Content="Skip" Width="84" Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding SkipCommand}"/>
+        </StackPanel>
+
+        <!-- Footer stats -->
+        <StackPanel Grid.Row="5" HorizontalAlignment="Center">
+            <TextBlock Text="{Binding CompletedSessions, StringFormat={}Focus sessions completed today: {0}}"
+                       FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+            <TextBlock Text="{Binding SettingsSummary}"
+                       FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,6,0,0"
+                       HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</Window>

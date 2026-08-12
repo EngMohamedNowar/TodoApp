@@ -1,0 +1,507 @@
+<Window x:Class="TodoApp.Views.PomodoroSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Timer Settings"
+        Width="440"
+        Height="640"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource WindowBrush}"
+        Icon="/Assets/app.ico"
+        FontFamily="Segoe UI"
+        Opacity="0">
+
+    <!-- =========================================================
+         RESOURCES
+         ========================================================= -->
+
+    <Window.Resources>
+
+        <!-- =====================================================
+             DARK TEXTBOX (with focus-glow border)
+             ===================================================== -->
+
+        <Style x:Key="DarkTextBoxStyle"
+               TargetType="{x:Type TextBox}">
+
+            <Setter Property="Background"
+                    Value="#1B1B24"/>
+
+            <Setter Property="Foreground"
+                    Value="#F5F5F7"/>
+
+            <Setter Property="BorderBrush"
+                    Value="#30303D"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="CaretBrush"
+                    Value="White"/>
+
+            <Setter Property="SelectionBrush"
+                    Value="#5146A5"/>
+
+            <Setter Property="SelectionTextBrush"
+                    Value="White"/>
+
+            <Setter Property="FontSize"
+                    Value="14"/>
+
+            <Setter Property="Padding"
+                    Value="14,0,4,0"/>
+
+            <Setter Property="Height"
+                    Value="44"/>
+
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+
+                        <Border x:Name="Border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10">
+
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="GlowEffect"
+                                                   Color="#5146A5"
+                                                   BlurRadius="0"
+                                                   ShadowDepth="0"
+                                                   Opacity="0"/>
+                            </Border.Effect>
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="30"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Text content -->
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Grid.Column="0"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"/>
+
+                                <!-- Up / Down spinner -->
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Vertical"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,6,0">
+
+                                    <RepeatButton x:Name="PART_UpButton"
+                                                  Height="18"
+                                                  Width="20"
+                                                  Background="Transparent"
+                                                  BorderThickness="0"
+                                                  Focusable="False"
+                                                  Cursor="Hand"
+                                                  Click="NumericUpDown_Increment">
+
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border x:Name="UpBg"
+                                                        Background="Transparent"
+                                                        CornerRadius="4">
+                                                    <Path Data="M 3,7 L 8,2 L 13,7"
+                                                          Stroke="#8A8A98"
+                                                          StrokeThickness="1.6"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeEndLineCap="Round"
+                                                          StrokeLineJoin="Round"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="UpBg" Property="Background" Value="#26262F"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+
+                                    </RepeatButton>
+
+                                    <RepeatButton x:Name="PART_DownButton"
+                                                  Height="18"
+                                                  Width="20"
+                                                  Background="Transparent"
+                                                  BorderThickness="0"
+                                                  Focusable="False"
+                                                  Cursor="Hand"
+                                                  Click="NumericUpDown_Decrement">
+
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border x:Name="DownBg"
+                                                        Background="Transparent"
+                                                        CornerRadius="4">
+                                                    <Path Data="M 3,2 L 8,7 L 13,2"
+                                                          Stroke="#8A8A98"
+                                                          StrokeThickness="1.6"
+                                                          StrokeStartLineCap="Round"
+                                                          StrokeEndLineCap="Round"
+                                                          StrokeLineJoin="Round"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="DownBg" Property="Background" Value="#26262F"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+
+                                    </RepeatButton>
+
+                                </StackPanel>
+
+                            </Grid>
+
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+
+                            <Trigger Property="IsFocused"
+                                     Value="True">
+
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+
+                                            <ColorAnimation
+                                                Storyboard.TargetName="Border"
+                                                Storyboard.TargetProperty="BorderBrush.Color"
+                                                To="#7B6EF6"
+                                                Duration="0:0:0.15"/>
+
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="GlowEffect"
+                                                Storyboard.TargetProperty="Opacity"
+                                                To="0.55"
+                                                Duration="0:0:0.15"/>
+
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="GlowEffect"
+                                                Storyboard.TargetProperty="BlurRadius"
+                                                To="10"
+                                                Duration="0:0:0.15"/>
+
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+
+                                            <ColorAnimation
+                                                Storyboard.TargetName="Border"
+                                                Storyboard.TargetProperty="BorderBrush.Color"
+                                                To="#30303D"
+                                                Duration="0:0:0.15"/>
+
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="GlowEffect"
+                                                Storyboard.TargetProperty="Opacity"
+                                                To="0"
+                                                Duration="0:0:0.15"/>
+
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+
+                            </Trigger>
+
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+
+                                <Setter TargetName="Border"
+                                        Property="BorderBrush"
+                                        Value="#4A4A5A"/>
+
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+        </Style>
+
+
+        <!-- =====================================================
+             FIELD LABEL
+             ===================================================== -->
+
+        <Style x:Key="FieldLabelStyle"
+               TargetType="{x:Type TextBlock}">
+
+            <Setter Property="FontSize"
+                    Value="12"/>
+
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+
+            <Setter Property="Foreground"
+                    Value="{StaticResource TextSecondaryBrush}"/>
+
+            <Setter Property="Margin"
+                    Value="2,0,0,8"/>
+
+        </Style>
+
+
+        <!-- =====================================================
+             FIELD CONTAINER
+             ===================================================== -->
+
+        <Style x:Key="FieldStackStyle"
+               TargetType="{x:Type StackPanel}">
+
+            <Setter Property="Margin"
+                    Value="0,0,0,22"/>
+
+        </Style>
+
+    </Window.Resources>
+
+
+    <!-- =========================================================
+         WINDOW ANIMATION (fade + gentle scale-in)
+         ========================================================= -->
+
+    <Window.Triggers>
+
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+
+            <BeginStoryboard>
+
+                <Storyboard>
+
+                    <DoubleAnimation
+                        Storyboard.TargetProperty="Opacity"
+                        To="1"
+                        Duration="0:0:0.22">
+                        <DoubleAnimation.EasingFunction>
+                            <QuadraticEase EasingMode="EaseOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+
+                </Storyboard>
+
+            </BeginStoryboard>
+
+        </EventTrigger>
+
+    </Window.Triggers>
+
+
+    <!-- =========================================================
+         MAIN CONTENT
+         ========================================================= -->
+
+    <Grid x:Name="RootGrid"
+          Margin="34,32,34,30"
+          RenderTransformOrigin="0.5,0.5">
+
+        <Grid.RenderTransform>
+            <ScaleTransform x:Name="ContentScale"
+                             ScaleX="0.97"
+                             ScaleY="0.97"/>
+        </Grid.RenderTransform>
+
+        <Grid.Triggers>
+
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+
+                <BeginStoryboard>
+
+                    <Storyboard>
+
+                        <DoubleAnimation
+                            Storyboard.TargetName="ContentScale"
+                            Storyboard.TargetProperty="ScaleX"
+                            To="1"
+                            Duration="0:0:0.22">
+                            <DoubleAnimation.EasingFunction>
+                                <QuadraticEase EasingMode="EaseOut"/>
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+
+                        <DoubleAnimation
+                            Storyboard.TargetName="ContentScale"
+                            Storyboard.TargetProperty="ScaleY"
+                            To="1"
+                            Duration="0:0:0.22">
+                            <DoubleAnimation.EasingFunction>
+                                <QuadraticEase EasingMode="EaseOut"/>
+                            </DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+
+                    </Storyboard>
+
+                </BeginStoryboard>
+
+            </EventTrigger>
+
+        </Grid.Triggers>
+
+        <Grid.RowDefinitions>
+
+            <!-- Header -->
+            <RowDefinition Height="Auto"/>
+
+            <!-- Fields -->
+            <RowDefinition Height="Auto"/>
+
+            <!-- Flexible spacer -->
+            <RowDefinition Height="*"/>
+
+            <!-- Divider -->
+            <RowDefinition Height="Auto"/>
+
+            <!-- Buttons -->
+            <RowDefinition Height="Auto"/>
+
+        </Grid.RowDefinitions>
+
+
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
+
+        <StackPanel Grid.Row="0"
+                    Margin="0,0,0,32">
+
+            <TextBlock
+                Text="Timer Settings"
+                FontSize="26"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextPrimaryBrush}"/>
+
+            <TextBlock
+                Text="Customize your focus and break durations"
+                FontSize="13"
+                Foreground="{StaticResource TextSecondaryBrush}"
+                Margin="0,6,0,0"/>
+
+        </StackPanel>
+
+
+        <!-- =====================================================
+             FIELDS
+             ===================================================== -->
+
+        <StackPanel Grid.Row="1">
+
+            <!-- Focus session -->
+            <StackPanel Style="{StaticResource FieldStackStyle}">
+
+                <TextBlock
+                    Text="FOCUS SESSION (MINUTES)"
+                    Style="{StaticResource FieldLabelStyle}"/>
+
+                <TextBox
+                    x:Name="WorkBox"
+                    Style="{StaticResource DarkTextBoxStyle}"/>
+
+            </StackPanel>
+
+            <!-- Short break -->
+            <StackPanel Style="{StaticResource FieldStackStyle}">
+
+                <TextBlock
+                    Text="SHORT BREAK (MINUTES)"
+                    Style="{StaticResource FieldLabelStyle}"/>
+
+                <TextBox
+                    x:Name="ShortBreakBox"
+                    Style="{StaticResource DarkTextBoxStyle}"/>
+
+            </StackPanel>
+
+            <!-- Long break -->
+            <StackPanel Style="{StaticResource FieldStackStyle}">
+
+                <TextBlock
+                    Text="LONG BREAK (MINUTES)"
+                    Style="{StaticResource FieldLabelStyle}"/>
+
+                <TextBox
+                    x:Name="LongBreakBox"
+                    Style="{StaticResource DarkTextBoxStyle}"/>
+
+            </StackPanel>
+
+            <!-- Sessions before long break -->
+            <StackPanel Margin="0,0,0,0">
+
+                <TextBlock
+                    Text="SESSIONS BEFORE A LONG BREAK"
+                    Style="{StaticResource FieldLabelStyle}"/>
+
+                <TextBox
+                    x:Name="SessionsBox"
+                    Style="{StaticResource DarkTextBoxStyle}"/>
+
+            </StackPanel>
+
+        </StackPanel>
+
+
+        <!-- =====================================================
+             DIVIDER
+             ===================================================== -->
+
+        <Border Grid.Row="3"
+                Height="1"
+                Background="#26262F"
+                Margin="0,0,0,22"/>
+
+
+        <!-- =====================================================
+             BUTTONS
+             ===================================================== -->
+
+        <StackPanel
+            Grid.Row="4"
+            Orientation="Horizontal"
+            HorizontalAlignment="Right">
+
+            <!-- Cancel -->
+
+            <Button
+                Content="Cancel"
+                Width="120"
+                Height="46"
+                Padding="18,0"
+                Margin="0,0,14,0"
+                Cursor="Hand"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Click="CancelButton_Click"/>
+
+
+            <!-- Save -->
+
+            <Button
+                Content="Save Changes"
+                Width="150"
+                Height="46"
+                Padding="18,0"
+                Cursor="Hand"
+                Style="{StaticResource PrimaryButtonStyle}"
+                Click="SaveButton_Click"/>
+
+        </StackPanel>
+
+    </Grid>
+
+</Window>
