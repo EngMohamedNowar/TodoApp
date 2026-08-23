@@ -361,3 +361,20 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Application database
+*.db
+*.db-shm
+*.db-wal
+
+# Publish output
+publish/
+*.rar
+*.zip
+
+# EF Core migrations (if used)
+*Migrations/
+
+# JetBrains Rider
+.idea/
+*.sln.iml

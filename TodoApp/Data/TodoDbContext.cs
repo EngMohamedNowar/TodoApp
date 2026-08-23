@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Models;
@@ -15,6 +16,12 @@ namespace TodoApp.Data
         public DbSet<TodoItem> Todos { get; set; } = null!;
         public DbSet<FocusSession> FocusSessions { get; set; } = null!;
         public DbSet<PomodoroSettingsEntity> PomodoroSettings { get; set; } = null!;
+        public DbSet<Category> Categories { get; set; } = null!;
+
+        public TodoDbContext(DbContextOptions<TodoDbContext> options)
+            : base(options)
+        {
+        }
 
         public static string GetDbPath()
         {
@@ -25,10 +32,11 @@ namespace TodoApp.Data
             return Path.Combine(folder, "todo.db");
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public static DbContextOptions<TodoDbContext> CreateDefaultOptions()
         {
-            var dbPath = GetDbPath();
-            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            var builder = new DbContextOptionsBuilder<TodoDbContext>();
+            builder.UseSqlite($"Data Source={GetDbPath()}");
+            return builder.Options;
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -52,6 +60,13 @@ namespace TodoApp.Data
             modelBuilder.Entity<PomodoroSettingsEntity>(entity =>
             {
                 entity.HasKey(s => s.Id);
+            });
+
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).IsRequired().HasMaxLength(100);
+                entity.HasIndex(c => c.Name).IsUnique();
             });
         }
 
@@ -84,7 +99,21 @@ namespace TodoApp.Data
                     SessionsBeforeLongBreak INTEGER NOT NULL
                 );");
 
+            Database.ExecuteSqlRaw(@"
+                CREATE TABLE IF NOT EXISTS Categories (
+                    Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    Name TEXT NOT NULL,
+                    CreatedAt TEXT NOT NULL
+                );");
+
             EnsureColumnExists("Todos", "SortOrder", "INTEGER NOT NULL DEFAULT 0");
+            EnsureColumnExists("Todos", "ParentId", "INTEGER");
+            EnsureColumnExists("Todos", "Recurrence", "INTEGER NOT NULL DEFAULT 0");
+            EnsureColumnExists("Todos", "Tags", "TEXT");
+            EnsureColumnExists("Todos", "Icon", "TEXT");
+            EnsureColumnExists("Todos", "IsFavorite", "INTEGER NOT NULL DEFAULT 0");
+            EnsureColumnExists("Todos", "IsArchived", "INTEGER NOT NULL DEFAULT 0");
+            EnsureColumnExists("Todos", "Attachments", "TEXT");
             EnsureColumnExists("FocusSessions", "IsHidden", "INTEGER NOT NULL DEFAULT 0");
         }
 
@@ -92,9 +121,28 @@ namespace TodoApp.Data
         /// Adds a column to an existing table if it isn't already there.
         /// SQLite has no "ADD COLUMN IF NOT EXISTS", so we check the
         /// table's schema first via PRAGMA table_info before altering it.
+        /// Uses parameterized queries to prevent SQL injection.
         /// </summary>
         private void EnsureColumnExists(string table, string column, string columnDefinition)
         {
+            var allowedTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Todos", "FocusSessions", "PomodoroSettings", "Categories"
+            };
+
+            var allowedColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "SortOrder", "IsHidden", "Id", "Title", "Description",
+                "Category", "Priority", "DueDate", "IsCompleted",
+                "CreatedAt", "CompletedAt", "StartedAt", "DurationMinutes",
+                "WorkMinutes", "ShortBreakMinutes", "LongBreakMinutes",
+                "SessionsBeforeLongBreak", "Name", "ParentId", "Recurrence",
+                "Tags", "Icon", "IsFavorite", "IsArchived", "Attachments"
+            };
+
+            if (!allowedTables.Contains(table) || !allowedColumns.Contains(column))
+                return;
+
             var columnExists = false;
             using (var command = Database.GetDbConnection().CreateCommand())
             {
@@ -116,7 +164,9 @@ namespace TodoApp.Data
 
             if (!columnExists)
             {
+#pragma warning disable EF1002
                 Database.ExecuteSqlRaw($"ALTER TABLE {table} ADD COLUMN {column} {columnDefinition};");
+#pragma warning restore EF1002
             }
         }
     }

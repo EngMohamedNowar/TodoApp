@@ -583,25 +583,75 @@
 
 
         <!-- =====================================================
-             DUE DATE
-             ===================================================== -->
+              DUE DATE + RECURRENCE
+              ===================================================== -->
 
-        <TextBlock Grid.Row="6"
-                   Text="Due date"
-                   Foreground="{StaticResource TextSecondaryBrush}"
-                   FontSize="12"
-                   Margin="0,0,0,7"/>
+        <Grid Grid.Row="6"
+              Margin="0,0,0,7">
+
+            <Grid.ColumnDefinitions>
+
+                <ColumnDefinition Width="*"/>
+
+                <ColumnDefinition Width="14"/>
+
+                <ColumnDefinition Width="*"/>
+
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="Due date"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12"/>
+
+            <TextBlock Grid.Column="2"
+                       Text="Repeat"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12"/>
+
+        </Grid>
 
 
-        <DatePicker x:Name="DueDatePicker"
-                    Grid.Row="7"
-                    Height="38"
-                    Padding="8,0"
-                    VerticalContentAlignment="Center"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Top"
-                    Margin="0,0,0,22"
-                    Style="{StaticResource DarkDatePickerStyle}"/>
+        <Grid Grid.Row="7"
+              Margin="0,0,0,22">
+
+            <Grid.ColumnDefinitions>
+
+                <ColumnDefinition Width="*"/>
+
+                <ColumnDefinition Width="14"/>
+
+                <ColumnDefinition Width="*"/>
+
+            </Grid.ColumnDefinitions>
+
+            <DatePicker x:Name="DueDatePicker"
+                        Grid.Column="0"
+                        Height="38"
+                        Padding="8,0"
+                        VerticalContentAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Top"
+                        Style="{StaticResource DarkDatePickerStyle}"/>
+
+            <ComboBox x:Name="RecurrenceBox"
+                      Grid.Column="2"
+                      Height="38"
+                      SelectedIndex="0"
+                      VerticalContentAlignment="Center"
+                      Style="{StaticResource DarkComboBoxStyle}">
+
+                <ComboBoxItem Content="Never"/>
+
+                <ComboBoxItem Content="↻ Daily"/>
+
+                <ComboBoxItem Content="↻ Weekly"/>
+
+                <ComboBoxItem Content="↻ Monthly"/>
+
+            </ComboBox>
+
+        </Grid>
 
 
         <!-- =====================================================

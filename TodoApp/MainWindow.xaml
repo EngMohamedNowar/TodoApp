@@ -41,16 +41,24 @@
 
 
     <!-- ========================================================= -->
-    <!-- ViewModel -->
+    <!-- Keyboard Shortcuts -->
     <!-- ========================================================= -->
 
-    <Window.DataContext>
+    <Window.InputBindings>
 
-        <vm:MainViewModel/>
+        <KeyBinding Modifiers="Control"
+                    Key="N"
+                    Command="{Binding AddCommand}"/>
 
-    </Window.DataContext>
+        <KeyBinding Modifiers="Control"
+                    Key="Z"
+                    Command="{Binding UndoDeleteCommand}"/>
+
+    </Window.InputBindings>
 
 
+    <!-- ========================================================= -->
+    <!-- Main Layout -->
     <!-- ========================================================= -->
     <!-- Main Layout -->
     <!-- ========================================================= -->
@@ -75,7 +83,11 @@
                 BorderBrush="{StaticResource BorderBrush2}"
                 BorderThickness="0,0,1,0">
 
-            <Grid Margin="18,24,18,18">
+            <ScrollViewer
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled">
+
+                <Grid Margin="18,24,18,18">
 
                 <Grid.RowDefinitions>
 
@@ -162,6 +174,38 @@
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{Binding OpenTimerCommand}"/>
 
+                    <Grid Margin="0,6,0,0">
+
+                        <Grid.ColumnDefinitions>
+
+                            <ColumnDefinition Width="*"/>
+
+                            <ColumnDefinition Width="6"/>
+
+                            <ColumnDefinition Width="*"/>
+
+                        </Grid.ColumnDefinitions>
+
+                        <Button
+                            Grid.Column="0"
+                            Content="📊  Stats"
+                            Height="30"
+                            FontSize="11.5"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding OpenDashboardCommand}"
+                            ToolTip="Open dashboard"/>
+
+                        <Button
+                            Grid.Column="2"
+                            Content="🎨  Theme"
+                            Height="30"
+                            FontSize="11.5"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding OpenThemePickerCommand}"
+                            ToolTip="Change accent color"/>
+
+                    </Grid>
+
                 </StackPanel>
 
 
@@ -201,6 +245,20 @@
                         Command="{Binding SetFilterCommand}"
                         CommandParameter="Completed"/>
 
+
+                    <Button
+                        Content="★  Starred"
+                        Style="{StaticResource SidebarButtonStyle}"
+                        Command="{Binding SetFilterCommand}"
+                        CommandParameter="Starred"/>
+
+
+                    <Button
+                        Content="🗄  Archive"
+                        Style="{StaticResource SidebarButtonStyle}"
+                        Command="{Binding SetFilterCommand}"
+                        CommandParameter="Archived"/>
+
                 </StackPanel>
 
 
@@ -225,6 +283,13 @@
                         Background="Transparent"
                         MaxHeight="180"
                         ItemContainerStyle="{StaticResource NavListBoxItemStyle}"/>
+
+                    <Button
+                        Content="Manage Categories"
+                        Style="{StaticResource SidebarButtonStyle}"
+                        FontSize="12"
+                        Margin="0,6,0,0"
+                        Click="ManageCategories_Click"/>
 
                 </StackPanel>
 
@@ -316,7 +381,9 @@
 
                 </StackPanel>
 
-            </Grid>
+                </Grid>
+
+            </ScrollViewer>
 
         </Border>
 
@@ -333,98 +400,197 @@
 
                 <RowDefinition Height="Auto"/>
 
+                <RowDefinition Height="Auto"/>
+
                 <RowDefinition Height="*"/>
 
             </Grid.RowDefinitions>
 
 
             <!-- ================================================= -->
-            <!-- Search Box -->
+            <!-- Bulk Actions Bar (visible when selection exists) -->
             <!-- ================================================= -->
 
             <Border
-                Grid.Row="0"
-                Width="300"
-                Height="38"
-                HorizontalAlignment="Left"
-                Background="{StaticResource CardBrush}"
-                BorderBrush="{StaticResource BorderBrush2}"
-                BorderThickness="1"
-                CornerRadius="9"
-                Margin="0,0,0,18">
+                Grid.Row="1"
+                Background="{StaticResource AccentSoftBrush}"
+                CornerRadius="8"
+                Padding="12,7"
+                Margin="0,0,0,14"
+                Visibility="{Binding HasSelection, Converter={StaticResource BooleanToVisibilityConverter}}">
 
-                <Grid>
-
-
-                    <!-- Search Icon -->
+                <StackPanel Orientation="Horizontal">
 
                     <TextBlock
-                        Text="&#xE721;"
                         FontFamily="Segoe MDL2 Assets"
-                        FontSize="14"
-                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="&#xE762;"
+                        Foreground="{StaticResource AccentBrush}"
                         VerticalAlignment="Center"
-                        HorizontalAlignment="Left"
-                        Margin="12,0,0,0"
-                        IsHitTestVisible="False"/>
+                        Margin="0,0,10,0"/>
 
+                    <Button
+                        Content="Delete selected"
+                        Height="28"
+                        Padding="12,0"
+                        FontSize="12"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding DeleteSelectedCommand}"
+                        Margin="0,0,8,0"/>
 
-                    <!-- TextBox -->
-
-                    <TextBox
-                        x:Name="SearchBox"
-                        Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        FontSize="13"
-                        Foreground="{StaticResource TextPrimaryBrush}"
-                        Padding="34,0,10,0"
-                        VerticalContentAlignment="Center"
-                        ToolTip="Search tasks..."/>
-
-
-                    <!-- Placeholder -->
+                    <Button
+                        Content="Clear selection"
+                        Height="28"
+                        Padding="12,0"
+                        FontSize="12"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding ClearSelectionCommand}"/>
 
                     <TextBlock
-                        Text="Search tasks..."
-                        FontSize="13"
+                        Text="Tip: Ctrl+Click cards to select multiple · double-click to open details"
+                        FontSize="11.5"
                         Foreground="{StaticResource TextMutedBrush}"
                         VerticalAlignment="Center"
-                        Margin="34,0,10,0"
-                        IsHitTestVisible="False">
+                        Margin="16,0,0,0"/>
 
-                        <TextBlock.Style>
-
-                            <Style TargetType="TextBlock">
-
-                                <Setter
-                                    Property="Visibility"
-                                    Value="Collapsed"/>
-
-
-                                <Style.Triggers>
-
-                                    <DataTrigger
-                                        Binding="{Binding Text, ElementName=SearchBox}"
-                                        Value="">
-
-                                        <Setter
-                                            Property="Visibility"
-                                            Value="Visible"/>
-
-                                    </DataTrigger>
-
-                                </Style.Triggers>
-
-                            </Style>
-
-                        </TextBlock.Style>
-
-                    </TextBlock>
-
-                </Grid>
+                </StackPanel>
 
             </Border>
+
+
+            <!-- ================================================= -->
+            <!-- Search Box + Sort -->
+            <!-- ================================================= -->
+
+            <Grid
+                Grid.Row="0"
+                Margin="0,0,0,18">
+
+                <Grid.ColumnDefinitions>
+
+                    <ColumnDefinition Width="300"/>
+
+                    <ColumnDefinition Width="*"/>
+
+                    <ColumnDefinition Width="Auto"/>
+
+                </Grid.ColumnDefinitions>
+
+                <Border
+                    Grid.Column="0"
+                    Height="38"
+                    Background="{StaticResource CardBrush}"
+                    BorderBrush="{StaticResource BorderBrush2}"
+                    BorderThickness="1"
+                    CornerRadius="9">
+
+                    <Grid>
+
+
+                        <!-- Search Icon -->
+
+                        <TextBlock
+                            Text="&#xE721;"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="14"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Left"
+                            Margin="12,0,0,0"
+                            IsHitTestVisible="False"/>
+
+
+                        <!-- TextBox -->
+
+                        <TextBox
+                            x:Name="SearchBox"
+                            Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            FontSize="13"
+                            Foreground="{StaticResource TextPrimaryBrush}"
+                            Padding="34,0,10,0"
+                            VerticalContentAlignment="Center"
+                            ToolTip="Search tasks..."/>
+
+
+                        <!-- Placeholder -->
+
+                        <TextBlock
+                            Text="Search tasks..."
+                            FontSize="13"
+                            Foreground="{StaticResource TextMutedBrush}"
+                            VerticalAlignment="Center"
+                            Margin="34,0,10,0"
+                            IsHitTestVisible="False">
+
+                            <TextBlock.Style>
+
+                                <Style TargetType="TextBlock">
+
+                                    <Setter
+                                        Property="Visibility"
+                                        Value="Collapsed"/>
+
+
+                                    <Style.Triggers>
+
+                                        <DataTrigger
+                                            Binding="{Binding Text, ElementName=SearchBox}"
+                                            Value="">
+
+                                            <Setter
+                                                Property="Visibility"
+                                                Value="Visible"/>
+
+                                        </DataTrigger>
+
+                                    </Style.Triggers>
+
+                                </Style>
+
+                            </TextBlock.Style>
+
+                        </TextBlock>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- Sort Selector -->
+
+                <StackPanel
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center">
+
+                    <TextBlock
+                        Text="Sort:"
+                        FontSize="12"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0"/>
+
+                    <ComboBox
+                        x:Name="SortBox"
+                        Width="130"
+                        Height="34"
+                        FontSize="12.5"
+                        SelectedIndex="{Binding SortModeIndex, Mode=TwoWay}">
+
+                        <ComboBoxItem Content="Manual"/>
+
+                        <ComboBoxItem Content="Due Date"/>
+
+                        <ComboBoxItem Content="Priority"/>
+
+                        <ComboBoxItem Content="Created"/>
+
+                    </ComboBox>
+
+                </StackPanel>
+
+            </Grid>
 
 
             <!-- ================================================= -->
@@ -432,7 +598,7 @@
             <!-- ================================================= -->
 
             <ScrollViewer
-                Grid.Row="1"
+                Grid.Row="2"
                 VerticalScrollBarVisibility="Auto"
                 HorizontalScrollBarVisibility="Disabled">
 
@@ -471,7 +637,17 @@
                                 RenderTransformOrigin="0.5,0.5"
                                 AllowDrop="True"
                                 DragOver="Card_DragOver"
-                                Drop="Card_Drop">
+                                Drop="Card_Drop"
+                                MouseLeftButtonDown="Card_MouseLeftButtonDown">
+
+                                <Border.InputBindings>
+
+                                    <MouseBinding
+                                        Gesture="LeftDoubleClick"
+                                        Command="{Binding DataContext.OpenDetailCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"/>
+
+                                </Border.InputBindings>
 
 
                                 <!-- Card Transform -->
@@ -550,6 +726,25 @@
                                                     Value="{StaticResource AccentBrush}"/>
 
                                             </Trigger>
+
+
+                                            <DataTrigger
+                                                Binding="{Binding IsSelected}"
+                                                Value="True">
+
+                                                <Setter
+                                                    Property="BorderBrush"
+                                                    Value="{StaticResource AccentBrush}"/>
+
+                                                <Setter
+                                                    Property="Background"
+                                                    Value="{StaticResource AccentSoftBrush}"/>
+
+                                                <Setter
+                                                    Property="BorderThickness"
+                                                    Value="2"/>
+
+                                            </DataTrigger>
 
                                         </Style.Triggers>
 
@@ -638,14 +833,26 @@
                                         VerticalAlignment="Center">
 
 
-                                        <!-- Title -->
+                                        <!-- Icon + Title -->
 
-                                        <TextBlock
-                                            Text="{Binding Title}"
-                                            FontSize="15"
-                                            FontWeight="SemiBold"
-                                            Foreground="{StaticResource TextPrimaryBrush}"
-                                            TextDecorations="{Binding IsCompleted, Converter={StaticResource BoolToStrikethroughConverter}}"/>
+                                        <StackPanel
+                                            Orientation="Horizontal">
+
+                                            <TextBlock
+                                                Text="{Binding DisplayIcon}"
+                                                FontSize="16"
+                                                Margin="0,0,8,0"
+                                                VerticalAlignment="Center"
+                                                Visibility="{Binding DisplayIcon, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}}"/>
+
+                                            <TextBlock
+                                                Text="{Binding Title}"
+                                                FontSize="15"
+                                                FontWeight="SemiBold"
+                                                Foreground="{StaticResource TextPrimaryBrush}"
+                                                TextDecorations="{Binding IsCompleted, Converter={StaticResource BoolToStrikethroughConverter}}"/>
+
+                                        </StackPanel>
 
 
                                         <!-- Description -->
@@ -705,6 +912,26 @@
 
 
                                             <!-- ================================================= -->
+                                            <!-- Recurrence Badge -->
+                                            <!-- ================================================= -->
+
+                                            <Border
+                                                CornerRadius="5"
+                                                Padding="7,2"
+                                                Margin="0,0,8,0"
+                                                Background="#2E5E4E"
+                                                Visibility="{Binding RecurrenceText, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}}">
+
+                                                <TextBlock
+                                                    Text="{Binding RecurrenceText}"
+                                                    FontSize="10.5"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="#7BE0B0"/>
+
+                                            </Border>
+
+
+                                            <!-- ================================================= -->
                                             <!-- Due Date -->
                                             <!-- ================================================= -->
 
@@ -747,6 +974,132 @@
 
                                         </StackPanel>
 
+
+                                        <!-- ================================================= -->
+                                        <!-- Tags chips -->
+                                        <!-- ================================================= -->
+
+                                        <ItemsControl
+                                            ItemsSource="{Binding TagsList}"
+                                            Margin="0,7,0,0"
+                                            Visibility="{Binding HasTags, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                                            <ItemsControl.ItemsPanel>
+
+                                                <ItemsPanelTemplate>
+
+                                                    <StackPanel Orientation="Horizontal"/>
+
+                                                </ItemsPanelTemplate>
+
+                                            </ItemsControl.ItemsPanel>
+
+                                            <ItemsControl.ItemTemplate>
+
+                                                <DataTemplate>
+
+                                                    <Border
+                                                        Background="#26314A"
+                                                        BorderBrush="#3A4A6E"
+                                                        BorderThickness="1"
+                                                        CornerRadius="9"
+                                                        Padding="8,1.5"
+                                                        Margin="0,0,6,0">
+
+                                                        <TextBlock
+                                                            Text="{Binding}"
+                                                            FontSize="10.5"
+                                                            Foreground="#8FB4FF"/>
+
+                                                    </Border>
+
+                                                </DataTemplate>
+
+                                            </ItemsControl.ItemTemplate>
+
+                                        </ItemsControl>
+
+
+                                        <!-- ================================================= -->
+                                        <!-- Sub-tasks -->
+                                        <!-- ================================================= -->
+
+                                        <ItemsControl
+                                            ItemsSource="{Binding SubTasks}"
+                                            Margin="0,8,0,0"
+                                            Visibility="{Binding HasSubTasks, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                                            <ItemsControl.ItemsPanel>
+
+                                                <ItemsPanelTemplate>
+
+                                                    <StackPanel/>
+
+                                                </ItemsPanelTemplate>
+
+                                            </ItemsControl.ItemsPanel>
+
+                                            <ItemsControl.ItemTemplate>
+
+                                                <DataTemplate>
+
+                                                    <Border
+                                                        Background="{StaticResource InputBrush}"
+                                                        CornerRadius="6"
+                                                        Padding="8,5"
+                                                        Margin="0,0,0,4">
+
+                                                        <Grid>
+
+                                                            <Grid.ColumnDefinitions>
+
+                                                                <ColumnDefinition Width="Auto"/>
+
+                                                                <ColumnDefinition Width="*"/>
+
+                                                                <ColumnDefinition Width="Auto"/>
+
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <CheckBox
+                                                                Grid.Column="0"
+                                                                IsChecked="{Binding IsCompleted, Mode=TwoWay}"
+                                                                VerticalAlignment="Center"
+                                                                Margin="0,0,8,0"/>
+
+                                                            <TextBlock
+                                                                Grid.Column="1"
+                                                                Text="{Binding Title}"
+                                                                FontSize="12"
+                                                                Foreground="{StaticResource TextSecondaryBrush}"
+                                                                VerticalAlignment="Center"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                TextDecorations="{Binding IsCompleted, Converter={StaticResource BoolToStrikethroughConverter}}"/>
+
+                                                            <Button
+                                                                Grid.Column="2"
+                                                                Content="&#xE74D;"
+                                                                FontFamily="Segoe MDL2 Assets"
+                                                                FontSize="10"
+                                                                Background="Transparent"
+                                                                BorderThickness="0"
+                                                                Foreground="{StaticResource TextMutedBrush}"
+                                                                Cursor="Hand"
+                                                                VerticalAlignment="Center"
+                                                                Margin="6,0,0,0"
+                                                                Command="{Binding DataContext.DeleteSubTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                CommandParameter="{Binding}"/>
+
+                                                        </Grid>
+
+                                                    </Border>
+
+                                                </DataTemplate>
+
+                                            </ItemsControl.ItemTemplate>
+
+                                        </ItemsControl>
+
                                     </StackPanel>
 
 
@@ -758,6 +1111,137 @@
                                         Grid.Column="4"
                                         Orientation="Horizontal"
                                         VerticalAlignment="Top">
+
+
+                                        <!-- Star / Favorite -->
+
+                                        <Button
+                                            Content="{Binding FavoriteGlyph}"
+                                            FontSize="15"
+                                            ToolTip="Star task"
+                                            Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,2,0">
+
+                                            <Button.Style>
+
+                                                <Style TargetType="Button"
+                                                       BasedOn="{StaticResource IconButtonStyle}">
+
+                                                    <Setter
+                                                        Property="Foreground"
+                                                        Value="{StaticResource TextMutedBrush}"/>
+
+
+                                                    <Style.Triggers>
+
+                                                        <DataTrigger
+                                                            Binding="{Binding IsFavorite}"
+                                                            Value="True">
+
+                                                            <Setter
+                                                                Property="Foreground"
+                                                                Value="#FFD43B"/>
+
+                                                        </DataTrigger>
+
+                                                    </Style.Triggers>
+
+                                                </Style>
+
+                                            </Button.Style>
+
+                                        </Button>
+
+
+                                        <!-- Archive (hidden in archived view) -->
+
+                                        <Button
+                                            Content="&#xE7B8;"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            ToolTip="Archive"
+                                            Command="{Binding DataContext.ArchiveTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,4,0">
+
+                                            <Button.Style>
+
+                                                <Style TargetType="Button"
+                                                       BasedOn="{StaticResource IconButtonStyle}">
+
+
+                                                    <Style.Triggers>
+
+                                                        <DataTrigger
+                                                            Binding="{Binding DataContext.Filter, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Value="Archived">
+
+                                                            <Setter
+                                                                Property="Visibility"
+                                                                Value="Collapsed"/>
+
+                                                        </DataTrigger>
+
+                                                    </Style.Triggers>
+
+                                                </Style>
+
+                                            </Button.Style>
+
+                                        </Button>
+
+
+                                        <!-- Unarchive (only in archived view) -->
+
+                                        <Button
+                                            Content="&#xE72C;"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            ToolTip="Restore from archive"
+                                            Command="{Binding DataContext.UnarchiveTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,4,0">
+
+                                            <Button.Style>
+
+                                                <Style TargetType="Button"
+                                                       BasedOn="{StaticResource IconButtonStyle}">
+
+                                                    <Setter
+                                                        Property="Visibility"
+                                                        Value="Collapsed"/>
+
+
+                                                    <Style.Triggers>
+
+                                                        <DataTrigger
+                                                            Binding="{Binding DataContext.Filter, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            Value="Archived">
+
+                                                            <Setter
+                                                                Property="Visibility"
+                                                                Value="Visible"/>
+
+                                                        </DataTrigger>
+
+                                                    </Style.Triggers>
+
+                                                </Style>
+
+                                            </Button.Style>
+
+                                        </Button>
+
+
+                                        <!-- Add Sub-Task -->
+
+                                        <Button
+                                            Content="&#xE710;"
+                                            FontFamily="Segoe MDL2 Assets"
+                                            Style="{StaticResource IconButtonStyle}"
+                                            ToolTip="Add sub-task"
+                                            Command="{Binding DataContext.AddSubTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0,0,4,0"/>
 
 
                                         <!-- Edit -->

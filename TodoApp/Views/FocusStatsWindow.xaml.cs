@@ -1,4 +1,5 @@
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using TodoApp.ViewModels;
 
 namespace TodoApp.Views
@@ -8,7 +9,7 @@ namespace TodoApp.Views
         public FocusStatsWindow()
         {
             InitializeComponent();
-            DataContext = new FocusStatsViewModel();
+            DataContext = App.Services.GetRequiredService<FocusStatsViewModel>();
         }
     }
 }

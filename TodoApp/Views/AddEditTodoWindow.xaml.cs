@@ -1,582 +1,110 @@
-using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using TodoApp.Data;
+using Microsoft.Extensions.DependencyInjection;
 using TodoApp.Models;
+using TodoApp.ViewModels;
 
 namespace TodoApp.Views
 {
     public partial class AddEditTodoWindow : Window
     {
-        // =========================================================
-        // Database
-        // =========================================================
-
-        private readonly TodoDbContext _db;
-
-
-        // =========================================================
-        // Result
-        // =========================================================
-
         public TodoItem? ResultItem { get; private set; }
+        public AddEditTodoViewModel ViewModel { get; }
 
-
-        // =========================================================
-        // Editing Item
-        // =========================================================
-
-        private readonly TodoItem? _editingItem;
-
-
-        // =========================================================
-        // New Task Constructor
-        // =========================================================
-
-        public AddEditTodoWindow()
+        public AddEditTodoWindow(bool isSubTask = false)
         {
             InitializeComponent();
+            ViewModel = App.Services.GetRequiredService<AddEditTodoViewModel>();
+            DataContext = ViewModel;
+            ViewModel.OwnerWindow = this;
 
-            _db = new TodoDbContext();
-
-            _db.EnsureSchema();
-
-            HeaderText.Text = "New Task";
-
-            // =====================================================
-            // Today's Date Automatically
-            // =====================================================
-
-            DueDatePicker.SelectedDate = DateTime.Today;
-
-
-            // =====================================================
-            // Load Categories
-            // =====================================================
-
-            LoadCategories();
-
-
-            // =====================================================
-            // Focus Title
-            // =====================================================
-
-            Loaded += (_, _) =>
-            {
-                TitleBox.Focus();
-            };
+            ViewModel.SetNewItem(isSubTask);
+            Loaded += OnNewWindowLoaded;
         }
 
-
-        // =========================================================
-        // Edit Task Constructor
-        // =========================================================
+        private async void OnNewWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= OnNewWindowLoaded;
+            await ViewModel.LoadCategoriesAsync();
+            HeaderText.Text = "New Task";
+            TitleBox.Focus();
+        }
 
         public AddEditTodoWindow(TodoItem item)
         {
             InitializeComponent();
+            ViewModel = App.Services.GetRequiredService<AddEditTodoViewModel>();
+            DataContext = ViewModel;
+            ViewModel.OwnerWindow = this;
 
-            _db = new TodoDbContext();
+            ViewModel.SetEditingItem(item);
+            Loaded += OnEditWindowLoaded;
+        }
 
-            _db.EnsureSchema();
-
-            _editingItem = item;
-
+        private async void OnEditWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= OnEditWindowLoaded;
+            await ViewModel.LoadCategoriesAsync();
             HeaderText.Text = "Edit Task";
-
-
-            // =====================================================
-            // Load Categories
-            // =====================================================
-
-            LoadCategories();
-
-
-            // =====================================================
-            // Load Existing Task
-            // =====================================================
-
-            LoadItem(item);
+            TitleBox.Focus();
+            TitleBox.SelectAll();
         }
 
-
-        // =========================================================
-        // Load Categories
-        // =========================================================
-
-        private void LoadCategories()
+        private void AddCategoryButton_Click(object sender, RoutedEventArgs e)
         {
-            CategoryBox.Items.Clear();
+            var categoryWindow = new AddCategoryWindow { Owner = this };
+            if (categoryWindow.ShowDialog() != true) return;
 
-            var categories =
-                _db.Todos
-                    .Where(t =>
-                        !string.IsNullOrWhiteSpace(t.Category))
-                    .Select(t => t.Category!)
-                    .Distinct()
-                    .OrderBy(c => c)
-                    .ToList();
+            var categoryName = categoryWindow.CategoryName?.Trim();
+            if (string.IsNullOrWhiteSpace(categoryName)) return;
 
+            if (!ViewModel.Categories.Contains(categoryName))
+                ViewModel.Categories.Add(categoryName);
 
-            foreach (var category in categories)
-            {
-                CategoryBox.Items.Add(category);
-            }
+            ViewModel.SelectedCategory = categoryName;
         }
 
-
-        // =========================================================
-        // Load Existing Todo
-        // =========================================================
-
-        private void LoadItem(TodoItem item)
+        private void CategoryBox_KeyDown(object sender, KeyEventArgs e)
         {
-            // =====================================================
-            // Title
-            // =====================================================
+            if (e.Key != Key.Delete) return;
+            if (CategoryBox.SelectedItem == null) return;
 
-            TitleBox.Text =
-                item.Title;
+            var category = CategoryBox.SelectedItem.ToString();
+            if (string.IsNullOrWhiteSpace(category)) return;
 
+            var result = MessageBox.Show(
+                $"Remove category \"{category}\" from this list?",
+                "Delete Category",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
 
-            // =====================================================
-            // Description
-            // =====================================================
+            if (result != MessageBoxResult.Yes) return;
 
-            DescriptionBox.Text =
-                item.Description;
-
-
-            // =====================================================
-            // Category
-            // =====================================================
-
-            if (!string.IsNullOrWhiteSpace(item.Category))
-            {
-                var existingCategory =
-                    CategoryBox.Items
-                        .Cast<object>()
-                        .FirstOrDefault(x =>
-                            string.Equals(
-                                x?.ToString(),
-                                item.Category,
-                                StringComparison.OrdinalIgnoreCase));
-
-
-                if (existingCategory != null)
-                {
-                    CategoryBox.SelectedItem =
-                        existingCategory;
-
-                    CategoryBox.Text =
-                        existingCategory.ToString();
-                }
-                else
-                {
-                    // The category may have been removed
-                    // from the database list but still exists
-                    // on this task.
-
-                    CategoryBox.Items.Add(
-                        item.Category);
-
-                    CategoryBox.SelectedItem =
-                        item.Category;
-
-                    CategoryBox.Text =
-                        item.Category;
-                }
-            }
-            else
-            {
-                CategoryBox.SelectedIndex = -1;
-
-                CategoryBox.Text = string.Empty;
-            }
-
-
-            // =====================================================
-            // Priority
-            // =====================================================
-
-            PriorityBox.SelectedIndex =
-                item.Priority switch
-                {
-                    PriorityLevel.Low => 0,
-
-                    PriorityLevel.Medium => 1,
-
-                    PriorityLevel.High => 2,
-
-                    _ => 1
-                };
-
-
-            // =====================================================
-            // Due Date
-            // =====================================================
-
-            DueDatePicker.SelectedDate =
-                item.DueDate ?? DateTime.Today;
-
-
-            // =====================================================
-            // Focus
-            // =====================================================
-
-            Loaded += (_, _) =>
-            {
-                TitleBox.Focus();
-
-                TitleBox.SelectAll();
-            };
-        }
-
-
-        // =========================================================
-        // Add Category
-        // =========================================================
-
-        private void AddCategoryButton_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            var categoryWindow =
-                new AddCategoryWindow
-                {
-                    Owner = this
-                };
-
-
-            // =====================================================
-            // Open Dialog
-            // =====================================================
-
-            if (categoryWindow.ShowDialog() != true)
-                return;
-
-
-            // =====================================================
-            // Get Category Name
-            // =====================================================
-
-            var categoryName =
-                categoryWindow.CategoryName?.Trim();
-
-
-            if (string.IsNullOrWhiteSpace(categoryName))
-                return;
-
-
-            // =====================================================
-            // Check Duplicate
-            // =====================================================
-
-            var existingCategory =
-                CategoryBox.Items
-                    .Cast<object>()
-                    .FirstOrDefault(x =>
-                        string.Equals(
-                            x?.ToString(),
-                            categoryName,
-                            StringComparison.OrdinalIgnoreCase));
-
-
-            // =====================================================
-            // Existing Category
-            // =====================================================
-
-            if (existingCategory != null)
-            {
-                CategoryBox.SelectedItem =
-                    existingCategory;
-
-                CategoryBox.Text =
-                    existingCategory.ToString();
-
-                return;
-            }
-
-
-            // =====================================================
-            // Add New Category
-            // =====================================================
-
-            CategoryBox.Items.Add(
-                categoryName);
-
-
-            // =====================================================
-            // Select New Category
-            // =====================================================
-
-            CategoryBox.SelectedItem =
-                categoryName;
-
-
-            CategoryBox.Text =
-                categoryName;
-
-
-            // =====================================================
-            // Open Dropdown
-            // =====================================================
-
-            CategoryBox.IsDropDownOpen = true;
-        }
-
-
-        // =========================================================
-        // Delete Category From Current List
-        // =========================================================
-
-        private void CategoryBox_KeyDown(
-            object sender,
-            KeyEventArgs e)
-        {
-            // Only react to Delete key
-
-            if (e.Key != Key.Delete)
-                return;
-
-
-            // =====================================================
-            // Get Selected Category
-            // =====================================================
-
-            if (CategoryBox.SelectedItem == null)
-                return;
-
-
-            var category =
-                CategoryBox.SelectedItem
-                    .ToString();
-
-
-            if (string.IsNullOrWhiteSpace(category))
-                return;
-
-
-            // =====================================================
-            // Confirm Delete
-            // =====================================================
-
-            var result =
-                MessageBox.Show(
-                    $"Remove category \"{category}\" from this list?",
-                    "Delete Category",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
-
-
-            if (result != MessageBoxResult.Yes)
-                return;
-
-
-            // =====================================================
-            // Remove Category
-            // =====================================================
-
-            CategoryBox.Items.Remove(
-                CategoryBox.SelectedItem);
-
-
-            // =====================================================
-            // Clear Selection
-            // =====================================================
-
+            CategoryBox.Items.Remove(CategoryBox.SelectedItem);
             CategoryBox.SelectedIndex = -1;
-
             CategoryBox.Text = string.Empty;
-
-
             e.Handled = true;
         }
 
-
-        // =========================================================
-        // Save
-        // =========================================================
-
-        private void SaveButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            // =====================================================
-            // Validate Title
-            // =====================================================
+            ViewModel.Title = TitleBox.Text;
+            ViewModel.Description = DescriptionBox.Text ?? string.Empty;
+            ViewModel.SelectedCategory = CategoryBox.Text?.Trim() ?? string.Empty;
+            ViewModel.SelectedPriorityIndex = PriorityBox.SelectedIndex;
+            ViewModel.DueDate = DueDatePicker.SelectedDate ?? System.DateTime.Today;
+            ViewModel.RecurrenceIndex = RecurrenceBox.SelectedIndex;
 
-            var title =
-                TitleBox.Text.Trim();
+            ViewModel.SaveCommand.Execute(null);
 
-
-            if (string.IsNullOrWhiteSpace(title))
+            if (ViewModel.DialogResult)
             {
-                MessageBox.Show(
-                    "Please enter a task title.",
-                    "Validation",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-
-
-                TitleBox.Focus();
-
-                return;
+                ResultItem = ViewModel.ResultItem;
+                DialogResult = true;
             }
-
-
-            // =====================================================
-            // Description
-            // =====================================================
-
-            var description =
-                DescriptionBox.Text?.Trim();
-
-
-            // =====================================================
-            // Category
-            // =====================================================
-
-            // IMPORTANT:
-            // CategoryBox is now an editable ComboBox.
-            // Therefore we read Text instead of only SelectedItem.
-
-            var category =
-                CategoryBox.Text?.Trim();
-
-
-            if (string.IsNullOrWhiteSpace(category))
-            {
-                category = null;
-            }
-            else
-            {
-                // =================================================
-                // Make sure typed category exists in the list
-                // =================================================
-
-                var existingCategory =
-                    CategoryBox.Items
-                        .Cast<object>()
-                        .FirstOrDefault(x =>
-                            string.Equals(
-                                x?.ToString(),
-                                category,
-                                StringComparison.OrdinalIgnoreCase));
-
-
-                if (existingCategory == null)
-                {
-                    CategoryBox.Items.Add(category);
-                }
-                else
-                {
-                    // Use the existing spelling
-                    category =
-                        existingCategory.ToString();
-                }
-            }
-
-
-            // =====================================================
-            // Priority
-            // =====================================================
-
-            var priority =
-                PriorityBox.SelectedIndex switch
-                {
-                    0 => PriorityLevel.Low,
-
-                    1 => PriorityLevel.Medium,
-
-                    2 => PriorityLevel.High,
-
-                    _ => PriorityLevel.Medium
-                };
-
-
-            // =====================================================
-            // Due Date
-            // =====================================================
-
-            var dueDate =
-                DueDatePicker.SelectedDate
-                ?? DateTime.Today;
-
-
-            // =====================================================
-            // EDIT EXISTING TASK
-            // =====================================================
-
-            if (_editingItem != null)
-            {
-                _editingItem.Title =
-                    title;
-
-
-                _editingItem.Description =
-                    description;
-
-
-                _editingItem.Category =
-                    category;
-
-
-                _editingItem.Priority =
-                    priority;
-
-
-                _editingItem.DueDate =
-                    dueDate;
-
-
-                ResultItem =
-                    _editingItem;
-            }
-
-
-            // =====================================================
-            // CREATE NEW TASK
-            // =====================================================
-
-            else
-            {
-                ResultItem =
-                    new TodoItem
-                    {
-                        Title = title,
-
-                        Description = description,
-
-                        Category = category,
-
-                        Priority = priority,
-
-                        DueDate = dueDate,
-
-                        CreatedAt = DateTime.Now,
-
-                        IsCompleted = false
-                    };
-            }
-
-
-            // =====================================================
-            // Close Dialog
-            // =====================================================
-
-            DialogResult = true;
         }
 
-
-        // =========================================================
-        // Cancel
-        // =========================================================
-
-        private void CancelButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
         }

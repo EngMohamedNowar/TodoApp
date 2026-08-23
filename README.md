@@ -1,92 +1,141 @@
-# My Tasks — تطبيق Todo List بـ WPF و SQLite
+# My Tasks — Notion-Style Todo App for Windows
 
-تطبيق Desktop كامل لإدارة المهام، مبني بـ **WPF + C# (.NET 8)** وبيستخدم **SQLite** كقاعدة بيانات محلية عن طريق **Entity Framework Core**. البيانات بتتخزن فعليًا على الجهاز في ملف `.db` مش في الذاكرة، يعني لو قفلت البرنامج وفتحته تاني هتلاقي كل المهام موجودة.
+![.NET](https://img.shields.io/badge/.NET-8.0-blueviolet)
+![WPF](https://img.shields.io/badge/UI-WPF-blue)
+![Database](https://img.shields.io/badge/DB-SQLite%20%2B%20EF%20Core-green)
+![Tests](https://img.shields.io/badge/tests-50%20passed-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-## المميزات
+A fast, fully offline **task management desktop app** built with **WPF + C# (.NET 8)** and **SQLite via Entity Framework Core** — combining a classic todo workflow with Notion-inspired features: sub-tasks, tags, emoji icons, file attachments, recurring tasks, an archive, and a Pomodoro focus timer with statistics.
 
-- إضافة / تعديل / حذف مهام
-- تحديد المهمة كمكتملة (checkbox) بحفظ فوري في الداتابيز
-- Priority (Low / Medium / High) بلون مميز لكل واحدة
-- تصنيفات (Categories) قابلة للفلترة من الـ sidebar
-- بحث فوري في العنوان والوصف
-- فلاتر: الكل / النشطة / المكتملة
-- تاريخ استحقاق (Due Date) مع تمييز المهام المتأخرة باللون الأحمر
-- **Dark theme احترافي بالكامل**: خلفية داكنة، بطاقات، أزرار، TextBox/ComboBox/DatePicker/CheckBox كلهم متصممين خصيصًا ليتماشوا مع الثيم (مفيش أي عنصر أبيض غريب وسط الواجهة)
-- **Logo مخصص** للتطبيق (أيقونة .ico) ظاهر في الـ exe نفسه، وفي الـ taskbar، وفي شريط عنوان النوافذ
-- تاريخ الاستحقاق بيتحدد تلقائيًا على تاريخ النهاردة عند إضافة مهمة جديدة (تقدر تغيره بسهولة)
-- **شريط تقدم (Progress Bar)** في الـ sidebar بيوضح نسبة المهام المنجزة % لحظيًا، بيتحدث تلقائي مع أي إضافة/حذف/تحديد إنجاز
-- **Pomodoro Timer** (زرار "⏱ Focus Timer" في الـ sidebar): تايمر منفصل بيفتح في نافذة خاصة بيه، يشتغل بالتقنية الكلاسيكية بالظبط:
-  - 25 دقيقة تركيز (Focus Session)
-  - 5 دقائق راحة قصيرة بعد كل جلسة تركيز
-  - 15 دقيقة راحة طويلة تلقائيًا بعد كل 4 جلسات تركيز متتالية
-  - صوت تنبيه لما الجلسة تخلص + تبديل تلقائي للمرحلة التالية
-  - أزرار Start/Pause, Reset, Skip + عداد لعدد الجلسات المنجزة
-  - النافذة بتفضل شغالة في الخلفية وانت بتستخدم قائمة المهام عادي (مش modal)
-- **Animations وسلاسة في كل التفاعلات**:
-  - كل الأزرار بتعمل "scale-down" خفيف عند الضغط وترجع بـ spring-back ناعم (BackEase) بدل التغيير المفاجئ
-  - تأثير hover بيظهر تدريجيًا (fade) بدل ما يتبدل فجأة
-  - الـ checkbox بتاع إكمال المهمة بيعمل "pop" (تكبير مرتد) لما تحددها
-  - شريط التقدم (progress bar) بيتحرك بسلاسة لما النسبة تتغير بدل ما يقفز فجأة
-  - بطاقات المهام بتظهر بحركة fade + slide-up لطيفة
-  - النوافذ كلها بتفتح بـ fade-in ناعم
-- **إعادة ترتيب المهام بالسحب (Drag & Drop)**: كل بطاقة مهمة ليها مقبض (⠿) على اليسار — اسحبها لفوق أو تحت عشان ترتب المهام زي ما انت عايز، والترتيب بيتحفظ تلقائي في قاعدة البيانات
-- **إحصائيات وسجل كامل للـ Pomodoro** (أيقونة 📊 جوه نافذة التايمر):
-  - كروت ملخص: ساعات التركيز النهاردة، عدد الأيام اللي استخدمت فيها التطبيق، وعدد أيام الاستمرارية (streak)
-  - رسم بياني أسبوعي (Bar Chart) لساعات التركيز يوم بيوم، مع أسهم للتنقل بين الأسابيع
-  - تبويب History بيعرض سجل كل جلسة تركيز (تاريخ، وقت البداية والنهاية، المدة)، مع زرار "Clear History" لمسح السجل بالكامل لو حبيت
-  - العدادات اليومية (زي "sessions completed today") بتتصفر تلقائيًا كل يوم جديد، لكن السجل التاريخي فاضل محفوظ لحد ما تمسحه بنفسك
-- **تعديل مدة التايمر** (أيقونة ⚙ جوه نافذة التايمر): تقدر تغيّر مدة جلسة التركيز، الراحة القصيرة، الراحة الطويلة، وعدد الجلسات قبل الراحة الطويلة — والقيم دي بتتحفظ وتفضل زي ما ظبطتها في المرات الجاية
-- **جرس تنبيه** بيشتغل تلقائي في نهاية أي جلسة (سواء تركيز أو راحة) عشان تعرف إن الوقت خلص
+All data is stored locally in `%AppData%\TodoApp\todo.db`. No accounts, no cloud, no telemetry.
 
-## هيكل المشروع (Clean-ish MVVM)
+---
+
+## ✨ Features
+
+### Task Management
+- **Full CRUD** — create, edit, and delete tasks with instant persistence
+- **Priorities** (Low / Medium / High) with color-coded indicators
+- **Due dates** with automatic overdue highlighting in red
+- **Categories** with sidebar filtering and a manage dialog
+- **Instant search** across titles, descriptions, tags, and sub-tasks
+- **Filters**: All / Active / Completed / ★ Starred / 🗄 Archive
+- **Sorting**: Manual (drag & drop), Due Date, Priority, or Creation Date
+
+### Notion-Inspired Extras
+- **Sub-tasks** — break any task down; progress is tracked automatically, and completing a parent completes its children
+- **Task detail page** — double-click any card to open a full-page editor
+- **Emoji icons & tags** — personalize tasks like Notion pages
+- **File attachments** — attach files to tasks; double-click to open them
+- **Recurring tasks** — Daily / Weekly / Monthly; completing one spawns the next occurrence automatically
+- **Starred tasks** — flag important work with one click
+- **Archive** — hide finished work without deleting it; restore anytime
+- **Multi-select** — `Ctrl+Click` cards for bulk delete
+- **Undo delete** — `Ctrl+Z` restores the last deletion, sub-task hierarchy intact
+
+### 🍅 Pomodoro Focus Timer
+- Classic technique: focus → short break → long break after N sessions
+- Fully configurable durations (persisted between runs)
+- Auto-advance between phases with an audio chime
+- **Statistics dashboard**: hours focused today, day streak, weekly bar chart, full session history
+
+### 📊 Dashboard
+- At-a-glance stat cards: total, completion %, overdue, starred
+- "Completed this week" bar chart
+- Per-category progress breakdown
+
+### 🎨 Customization & Polish
+- **6 accent color themes** applied live and remembered across sessions
+- Complete dark theme — every control styled, no white surprises
+- Smooth animations throughout (spring buttons, fade-ins, animated progress)
+- Drag-and-drop task reordering with a dedicated handle
+
+### 🔧 Under the Hood
+| | |
+|---|---|
+| Architecture | Clean MVVM + Repository pattern |
+| Dependency Injection | `Microsoft.Extensions.DependencyInjection` |
+| Data | EF Core 8 + SQLite, auto-migrating schema |
+| Backups | Automatic on startup (last 5 kept) |
+| Testing | xUnit — 50 tests covering models, repositories, and view models |
+
+### ⌨️ Keyboard Shortcuts
+| Shortcut | Action |
+|---|---|
+| `Ctrl+N` | New task |
+| `Ctrl+Z` | Undo last delete |
+| `Ctrl+Click` | Multi-select cards |
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Windows** 10/11 (WPF is Windows-only)
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+
+### Run
+```bash
+git clone https://github.com/EngMohamedNowar/TodoApp.git
+cd TodoApp
+dotnet run --project TodoApp
+```
+
+Or open `TodoApp.sln` in Visual Studio 2022 and press `F5`.
+
+### Run Tests
+```bash
+dotnet test
+```
+
+---
+
+## 📁 Project Structure
 
 ```
 TodoApp/
-├── Models/          → TodoItem, FocusSession, PomodoroSettingsEntity
-├── Data/            → TodoDbContext.cs (اتصال EF Core بـ SQLite + إدارة الـ schema)
-├── ViewModels/      → MainViewModel, TodoItemViewModel, PomodoroViewModel, FocusStatsViewModel, RelayCommand, ViewModelBase
-├── Views/           → AddEditTodoWindow, PomodoroWindow, PomodoroSettingsWindow, FocusStatsWindow
-├── Converters/      → Converters للـ XAML bindings
-├── Behaviors/        → SmoothAnimation.cs (تحريك سلس للعرض/الارتفاع)
-├── Assets/          → app.ico (لوجو التطبيق)
-├── MainWindow.xaml  → الواجهة الرئيسية
-└── App.xaml         → الـ Dark theme والـ styles العامة لكل الكنترولز
+├── Models/          → EF Core entities (TodoItem, FocusSession, Category, ...)
+├── Data/            → DbContext, schema management, backup service
+├── Repositories/    → Repository interfaces + implementations
+├── ViewModels/      → MVVM view models + RelayCommand
+├── Views/           → Windows (main, detail, pomodoro, dashboard, ...)
+├── Converters/      → XAML value converters
+├── Behaviors/       → Attached properties (smooth animations)
+├── Services/        → Theme engine, settings persistence
+└── Assets/          → App icon
+
+TodoApp.Tests/       → xUnit test suite
 ```
 
-هيكل زي اللي انت متعود عليه في مشاريعك (Repository-free بس MVVM كامل، سهل تضيف عليه Repository/UnitOfWork لو حبيت توسعه).
+## 💾 Where Is My Data?
 
-## متطلبات التشغيل
+Everything lives locally — created automatically on first launch:
 
-1. **Windows** (لازم، لأن WPF مش بيشتغل على Linux/Mac)
-2. **.NET 8 SDK** — تحمله من https://dotnet.microsoft.com/download/dotnet/8.0
-3. **Visual Studio 2022** (أي إصدار حتى Community) أو أي محرر تاني بيدعم .NET
-
-## طريقة التشغيل
-
-### باستخدام Visual Studio
-1. افتح ملف `TodoApp.sln`
-2. اضغط `F5` أو زرار Start — Visual Studio هيعمل restore للـ NuGet packages أوتوماتيك (`Microsoft.EntityFrameworkCore.Sqlite`)
-
-### باستخدام سطر الأوامر
-```bash
-cd TodoApp
-dotnet restore
-dotnet run
+```
+%AppData%\TodoApp\todo.db        # SQLite database
+%AppData%\TodoApp\backups\       # Auto-backups (last 5)
+%AppData%\TodoApp\settings.json  # Theme preference
 ```
 
-## فين بتتخزن البيانات؟
+The schema evolves safely on upgrade — new columns are added automatically, no manual migration needed.
 
-قاعدة البيانات بتتعمل أوتوماتيك أول ما تشغل البرنامج في:
-```
-%AppData%\TodoApp\todo.db
-```
-مفيش حاجة تعملها يدوي — `Database.EnsureCreated()` بتعمل الجدول لوحدها أول مرة.
+---
 
-## أفكار للتوسيع لاحقًا
+## 🗺 Roadmap
 
-- إضافة Repository/UnitOfWork pattern زي مشروع الـ GymManagementSystem بتاعك
-- Sub-tasks / checklists جوه كل مهمة
-- Notifications/Reminders للمهام القريبة من الاستحقاق
-- Export/Import (CSV أو JSON) للنسخ الاحتياطي
-- Dark mode
-- ربط المشروع بـ migrations بدل EnsureCreated لو هتضيف حقول جديدة مستقبلًا
+- [ ] Kanban board view
+- [ ] Calendar view
+- [ ] Export/import (JSON)
+- [ ] Task templates
+- [ ] Reminders via Windows notifications
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+
+Developed by **Eng. Mohamed Nowar**

@@ -2,8 +2,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
-using TodoApp.Data;
+using TodoApp.Repositories;
 
 namespace TodoApp.ViewModels
 {
@@ -23,23 +24,23 @@ namespace TodoApp.ViewModels
         public string DurationLabel { get; set; } = "";
     }
 
-    public class FocusStatsViewModel : ViewModelBase
+    public class FocusStatsViewModel : ViewModelBase, IDisposable
     {
-        private readonly TodoDbContext _db;
+        private readonly IFocusSessionRepository _sessionRepo;
         private const double ChartMaxHeight = 130;
+        private bool _disposed;
 
-        public FocusStatsViewModel()
+        public FocusStatsViewModel(IFocusSessionRepository sessionRepo)
         {
-            _db = new TodoDbContext();
-            _db.EnsureSchema();
+            _sessionRepo = sessionRepo;
 
-            PrevWeekCommand = new RelayCommand(_ => ChangeWeek(-1));
-            NextWeekCommand = new RelayCommand(_ => ChangeWeek(1), _ => _weekOffset < 0);
-            ClearHistoryCommand = new RelayCommand(_ => ClearHistory());
+            PrevWeekCommand = new RelayCommand(async _ => await ChangeWeekAsync(-1));
+            NextWeekCommand = new RelayCommand(async _ => await ChangeWeekAsync(1), _ => _weekOffset < 0);
+            ClearHistoryCommand = new RelayCommand(async _ => await ClearHistoryAsync());
             ShowSummaryTabCommand = new RelayCommand(_ => IsHistoryTabActive = false);
             ShowHistoryTabCommand = new RelayCommand(_ => IsHistoryTabActive = true);
 
-            RefreshAll();
+            _ = RefreshAllAsync();
         }
 
         private bool _isHistoryTabActive;
@@ -96,56 +97,56 @@ namespace TodoApp.ViewModels
 
         private int _weekOffset;
 
-        private void ChangeWeek(int delta)
+        private async Task ChangeWeekAsync(int delta)
         {
-            var newOffset = _weekOffset + delta;
-            if (newOffset > 0) return;
-            _weekOffset = newOffset;
-            LoadWeekBars();
-            NextWeekCommand.RaiseCanExecuteChanged();
-        }
-
-        private void RefreshAll()
-        {
-            LoadSummary();
-            LoadWeekBars();
-            LoadHistory();
-        }
-
-        private void LoadSummary()
-        {
-            // Summary always counts ALL sessions (hidden or not) - Clear History
-            // only soft-deletes rows from the History list, never from these stats.
-            var today = DateTime.Today;
-
-            HoursFocusedToday = Math.Round(
-                _db.FocusSessions.Where(f => f.StartedAt >= today && f.StartedAt < today.AddDays(1))
-                    .Sum(f => (double?)f.DurationMinutes) / 60.0 ?? 0, 1);
-
-            var distinctDates = _db.FocusSessions
-                .Select(f => f.StartedAt.Date)
-                .Distinct()
-                .OrderByDescending(d => d)
-                .ToList();
-
-            DaysAccessed = distinctDates.Count;
-
-            var cursor = today;
-            if (!distinctDates.Contains(cursor)) cursor = cursor.AddDays(-1);
-            var streak = 0;
-            while (distinctDates.Contains(cursor))
+            try
             {
-                streak++;
-                cursor = cursor.AddDays(-1);
+                var newOffset = _weekOffset + delta;
+                if (newOffset > 0) return;
+                _weekOffset = newOffset;
+                await LoadWeekBarsAsync();
+                NextWeekCommand.RaiseCanExecuteChanged();
             }
-            DayStreak = streak;
-
-            HasHistory = distinctDates.Count > 0;
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to load week data:\n\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
-        private void LoadWeekBars()
+        private async Task RefreshAllAsync()
         {
-            // Also counts ALL sessions - same reason as LoadSummary.
+            try
+            {
+                await LoadSummaryAsync();
+                await LoadWeekBarsAsync();
+                await LoadHistoryAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to load statistics:\n\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        private async Task LoadSummaryAsync()
+        {
+            HoursFocusedToday = await _sessionRepo.GetTodayHoursAsync();
+            DaysAccessed = await _sessionRepo.GetTotalDaysAsync();
+            DayStreak = await _sessionRepo.GetStreakAsync();
+
+            var totalDays = await _sessionRepo.GetTotalDaysAsync();
+            HasHistory = totalDays > 0;
+        }
+
+        private async Task LoadWeekBarsAsync()
+        {
             WeekBars.Clear();
 
             var today = DateTime.Today;
@@ -157,16 +158,7 @@ namespace TodoApp.ViewModels
                 ? "This Week"
                 : $"{weekStart:MMM d} - {weekEnd.AddDays(-1):MMM d}";
 
-            var dailyHours = new double[7];
-            for (int i = 0; i < 7; i++)
-            {
-                var day = weekStart.AddDays(i);
-                var minutes = _db.FocusSessions
-                    .Where(f => f.StartedAt >= day && f.StartedAt < day.AddDays(1))
-                    .Sum(f => (double?)f.DurationMinutes) ?? 0;
-                dailyHours[i] = minutes / 60.0;
-            }
-
+            var dailyHours = await _sessionRepo.GetWeeklyHoursAsync(weekStart);
             var maxHours = Math.Max(dailyHours.Max(), 1.0);
 
             for (int i = 0; i < 7; i++)
@@ -183,15 +175,10 @@ namespace TodoApp.ViewModels
             }
         }
 
-        private void LoadHistory()
+        private async Task LoadHistoryAsync()
         {
             HistoryRows.Clear();
-
-            var sessions = _db.FocusSessions
-                .Where(f => !f.IsHidden)
-                .OrderByDescending(f => f.StartedAt)
-                .Take(200)
-                .ToList();
+            var sessions = await _sessionRepo.GetVisibleAsync();
 
             foreach (var s in sessions)
             {
@@ -204,7 +191,7 @@ namespace TodoApp.ViewModels
             }
         }
 
-        private void ClearHistory()
+        private async Task ClearHistoryAsync()
         {
             var result = MessageBox.Show(
                 "This will clear your session history list. Your totals and streak will be kept. Continue?",
@@ -214,18 +201,29 @@ namespace TodoApp.ViewModels
 
             if (result != MessageBoxResult.Yes) return;
 
-            // Soft delete: hide from History, but keep the rows so Summary
-            // (hours, streak, days accessed) stays accurate.
-            var visibleSessions = _db.FocusSessions.Where(f => !f.IsHidden);
-            foreach (var s in visibleSessions)
+            try
             {
-                s.IsHidden = true;
-            }
-            _db.SaveChanges();
+                await _sessionRepo.SoftDeleteAllVisibleAsync();
+                await _sessionRepo.SaveChangesAsync();
 
-            _weekOffset = 0;
-            RefreshAll();
-            NextWeekCommand.RaiseCanExecuteChanged();
+                _weekOffset = 0;
+                await RefreshAllAsync();
+                NextWeekCommand.RaiseCanExecuteChanged();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Failed to clear history:\n\n{ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
         }
     }
 }

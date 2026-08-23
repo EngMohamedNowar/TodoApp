@@ -1,19 +1,19 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.Extensions.DependencyInjection;
+using TodoApp.ViewModels;
 
 namespace TodoApp.Views
 {
     public partial class PomodoroSettingsWindow : Window
     {
         public int WorkMinutesResult { get; private set; }
-
         public int ShortBreakMinutesResult { get; private set; }
-
         public int LongBreakMinutesResult { get; private set; }
-
         public int SessionsBeforeLongBreakResult { get; private set; }
 
+        private readonly PomodoroSettingsViewModel _viewModel;
 
         public PomodoroSettingsWindow(
             int workMinutes,
@@ -22,19 +22,11 @@ namespace TodoApp.Views
             int sessionsBeforeLongBreak)
         {
             InitializeComponent();
-
-            WorkBox.Text =
-                workMinutes.ToString();
-
-            ShortBreakBox.Text =
-                shortBreakMinutes.ToString();
-
-            LongBreakBox.Text =
-                longBreakMinutes.ToString();
-
-            SessionsBox.Text =
-                sessionsBeforeLongBreak.ToString();
+            _viewModel = App.Services.GetRequiredService<PomodoroSettingsViewModel>();
+            DataContext = _viewModel;
+            _viewModel.Initialize(workMinutes, shortBreakMinutes, longBreakMinutes, sessionsBeforeLongBreak);
         }
+
         private void NumericUpDown_Increment(object sender, RoutedEventArgs e)
         {
             ChangeValue(sender, 1);
@@ -48,8 +40,6 @@ namespace TodoApp.Views
         private void ChangeValue(object sender, int delta)
         {
             if (sender is not FrameworkElement fe) return;
-
-            // نطلع للـ TextBox الأصلي اللي الـ Template ده بتاعه
             var textBox = FindParentTextBox(fe);
             if (textBox == null) return;
 
@@ -57,13 +47,13 @@ namespace TodoApp.Views
                 value = 0;
 
             value += delta;
-            if (value < 1) value = 1; // أقل قيمة مسموحة
+            if (value < 1) value = 1;
 
             textBox.Text = value.ToString();
             textBox.CaretIndex = textBox.Text.Length;
         }
 
-        private TextBox FindParentTextBox(DependencyObject child)
+        private TextBox? FindParentTextBox(DependencyObject child)
         {
             while (child != null)
             {
@@ -74,96 +64,32 @@ namespace TodoApp.Views
             return null;
         }
 
-
-        private void SaveButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!TryParsePositive(
-                    WorkBox.Text,
-                    1,
-                    180,
-                    out var work) ||
+            _viewModel.WorkText = WorkBox.Text;
+            _viewModel.ShortBreakText = ShortBreakBox.Text;
+            _viewModel.LongBreakText = LongBreakBox.Text;
+            _viewModel.SessionsText = SessionsBox.Text;
 
-                !TryParsePositive(
-                    ShortBreakBox.Text,
-                    1,
-                    60,
-                    out var shortBreak) ||
-
-                !TryParsePositive(
-                    LongBreakBox.Text,
-                    1,
-                    90,
-                    out var longBreak) ||
-
-                !TryParsePositive(
-                    SessionsBox.Text,
-                    1,
-                    12,
-                    out var sessions))
+            if (!_viewModel.Save())
             {
                 MessageBox.Show(
-                    "Please enter valid whole numbers:\n" +
-                    "Focus: 1-180 min\n" +
-                    "Short break: 1-60 min\n" +
-                    "Long break: 1-90 min\n" +
-                    "Sessions: 1-12.",
+                    _viewModel.ErrorMessage,
                     "Invalid Value",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
-
                 return;
             }
 
-
-            WorkMinutesResult =
-                work;
-
-            ShortBreakMinutesResult =
-                shortBreak;
-
-            LongBreakMinutesResult =
-                longBreak;
-
-            SessionsBeforeLongBreakResult =
-                sessions;
-
+            WorkMinutesResult = _viewModel.WorkMinutesResult;
+            ShortBreakMinutesResult = _viewModel.ShortBreakMinutesResult;
+            LongBreakMinutesResult = _viewModel.LongBreakMinutesResult;
+            SessionsBeforeLongBreakResult = _viewModel.SessionsBeforeLongBreakResult;
 
             DialogResult = true;
         }
 
-
-        private static bool TryParsePositive(
-            string? text,
-            int min,
-            int max,
-            out int value)
-        {
-            value = 0;
-
-            if (!int.TryParse(
-                    text,
-                    out var parsed))
-            {
-                return false;
-            }
-
-            if (parsed < min ||
-                parsed > max)
-            {
-                return false;
-            }
-
-            value = parsed;
-
-            return true;
-        }
-
-
-        private void CancelButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
         }
