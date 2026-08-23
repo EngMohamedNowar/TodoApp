@@ -467,7 +467,7 @@ namespace TodoApp.ViewModels
         {
             try
             {
-                var dialog = new AddEditTodoWindow();
+                var dialog = new AddEditTodoWindow(existingCategories: Categories.ToList());
                 if (Application.Current.MainWindow != null)
                     dialog.Owner = Application.Current.MainWindow;
 
@@ -500,7 +500,7 @@ namespace TodoApp.ViewModels
 
             try
             {
-                var dialog = new AddEditTodoWindow(isSubTask: true);
+                var dialog = new AddEditTodoWindow(isSubTask: true, existingCategories: Categories.ToList());
                 if (Application.Current.MainWindow != null)
                     dialog.Owner = Application.Current.MainWindow;
 
@@ -565,7 +565,7 @@ namespace TodoApp.ViewModels
 
             try
             {
-                var dialog = new AddEditTodoWindow(vm.Model);
+                var dialog = new AddEditTodoWindow(vm.Model, existingCategories: Categories.ToList());
                 if (Application.Current.MainWindow != null)
                     dialog.Owner = Application.Current.MainWindow;
 

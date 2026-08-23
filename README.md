@@ -12,6 +12,32 @@ All data is stored locally in `%AppData%\TodoApp\todo.db`. No accounts, no cloud
 
 ---
 
+## Screenshots
+
+### Main View
+![Main View](screenshots/main.png)
+
+### Task Detail & New Task
+![New Task](screenshots/new-task.png)
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Focus Timer
+![Focus Timer](screenshots/focus-timer.png)
+
+### Focus Stats
+![Focus Stats Summary](screenshots/focus-stats-summary.png)
+![Focus Stats History](screenshots/focus-stats-history.png)
+
+### Theme Picker
+![Theme Picker](screenshots/theme-picker.png)
+
+### Multi-Select
+![Multi-Select](screenshots/selected.png)
+
+---
+
 ## ✨ Features
 
 ### Task Management

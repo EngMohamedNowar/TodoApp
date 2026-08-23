@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,13 +13,14 @@ namespace TodoApp.Views
         public TodoItem? ResultItem { get; private set; }
         public AddEditTodoViewModel ViewModel { get; }
 
-        public AddEditTodoWindow(bool isSubTask = false)
+        public AddEditTodoWindow(bool isSubTask = false, IEnumerable<string>? existingCategories = null)
         {
             InitializeComponent();
             ViewModel = App.Services.GetRequiredService<AddEditTodoViewModel>();
             DataContext = ViewModel;
             ViewModel.OwnerWindow = this;
 
+            ViewModel.SeedCategories(existingCategories ?? Enumerable.Empty<string>());
             ViewModel.SetNewItem(isSubTask);
             Loaded += OnNewWindowLoaded;
         }
@@ -30,13 +33,14 @@ namespace TodoApp.Views
             TitleBox.Focus();
         }
 
-        public AddEditTodoWindow(TodoItem item)
+        public AddEditTodoWindow(TodoItem item, IEnumerable<string>? existingCategories = null)
         {
             InitializeComponent();
             ViewModel = App.Services.GetRequiredService<AddEditTodoViewModel>();
             DataContext = ViewModel;
             ViewModel.OwnerWindow = this;
 
+            ViewModel.SeedCategories(existingCategories ?? Enumerable.Empty<string>());
             ViewModel.SetEditingItem(item);
             Loaded += OnEditWindowLoaded;
         }
@@ -48,20 +52,6 @@ namespace TodoApp.Views
             HeaderText.Text = "Edit Task";
             TitleBox.Focus();
             TitleBox.SelectAll();
-        }
-
-        private void AddCategoryButton_Click(object sender, RoutedEventArgs e)
-        {
-            var categoryWindow = new AddCategoryWindow { Owner = this };
-            if (categoryWindow.ShowDialog() != true) return;
-
-            var categoryName = categoryWindow.CategoryName?.Trim();
-            if (string.IsNullOrWhiteSpace(categoryName)) return;
-
-            if (!ViewModel.Categories.Contains(categoryName))
-                ViewModel.Categories.Add(categoryName);
-
-            ViewModel.SelectedCategory = categoryName;
         }
 
         private void CategoryBox_KeyDown(object sender, KeyEventArgs e)
@@ -80,8 +70,8 @@ namespace TodoApp.Views
 
             if (result != MessageBoxResult.Yes) return;
 
-            CategoryBox.Items.Remove(CategoryBox.SelectedItem);
-            CategoryBox.SelectedIndex = -1;
+            ViewModel.Categories.Remove(category);
+            ViewModel.SelectedCategory = string.Empty;
             CategoryBox.Text = string.Empty;
             e.Handled = true;
         }

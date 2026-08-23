@@ -503,48 +503,18 @@
 
 
             <!-- =================================================
-                 CATEGORY COMBOBOX + ADD BUTTON
+                 CATEGORY COMBOBOX
                  ================================================= -->
 
-            <Grid Grid.Row="1"
-                  Grid.Column="0">
-
-                <Grid.ColumnDefinitions>
-
-                    <ColumnDefinition Width="*"/>
-
-                    <ColumnDefinition Width="8"/>
-
-                    <ColumnDefinition Width="36"/>
-
-                </Grid.ColumnDefinitions>
-
-
-                <!-- CATEGORY -->
-
-                <ComboBox x:Name="CategoryBox"
-                          Grid.Column="0"
-                          Height="38"
-                          IsEditable="True"
-                          IsTextSearchEnabled="True"
-                          VerticalContentAlignment="Center"
-                          Style="{StaticResource DarkComboBoxStyle}"/>
-
-
-                <!-- ADD CATEGORY -->
-
-                <Button x:Name="AddCategoryButton"
-                        Grid.Column="2"
-                        Content="+"
-                        Width="36"
-                        Height="36"
-                        FontSize="18"
-                        Padding="0"
-                        VerticalAlignment="Center"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        Click="AddCategoryButton_Click"/>
-
-            </Grid>
+            <ComboBox x:Name="CategoryBox"
+                      Grid.Row="1"
+                      Grid.Column="0"
+                      Height="38"
+                      IsEditable="True"
+                      IsTextSearchEnabled="True"
+                      VerticalContentAlignment="Center"
+                      ItemsSource="{Binding Categories}"
+                      Style="{StaticResource DarkComboBoxStyle}"/>
 
 
             <!-- =================================================

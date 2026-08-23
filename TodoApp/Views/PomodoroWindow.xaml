@@ -53,10 +53,32 @@
                    Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,22,0,22"/>
 
         <!-- Progress bar -->
-        <Border Grid.Row="2" Height="8" CornerRadius="4" Background="{StaticResource InputBrush}" Margin="0,0,0,28">
-            <Border HorizontalAlignment="Left" CornerRadius="4"
-                    Background="{Binding Mode, Converter={StaticResource PomodoroModeToBrushConverter}}"
-                    behaviors:SmoothAnimation.TargetWidth="{Binding ProgressPercentage, Converter={StaticResource PercentageToWidthConverter}, ConverterParameter=296}"/>
+        <Border x:Name="TimerTrack"
+                Grid.Row="2"
+                Height="8"
+                CornerRadius="4"
+                Background="{StaticResource InputBrush}"
+                Margin="0,0,0,28">
+
+            <Border HorizontalAlignment="Left"
+                    CornerRadius="4"
+                    Background="{Binding Mode, Converter={StaticResource PomodoroModeToBrushConverter}}">
+
+                <behaviors:SmoothAnimation.TargetWidth>
+
+                    <MultiBinding Converter="{StaticResource PercentOfTrackConverter}">
+
+                        <Binding Path="ProgressPercentage"/>
+
+                        <Binding ElementName="TimerTrack"
+                                 Path="ActualWidth"/>
+
+                    </MultiBinding>
+
+                </behaviors:SmoothAnimation.TargetWidth>
+
+            </Border>
+
         </Border>
 
         <!-- Controls -->

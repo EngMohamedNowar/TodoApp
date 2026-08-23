@@ -94,10 +94,29 @@ namespace TodoApp.ViewModels
 
         public async Task LoadCategoriesAsync()
         {
-            var categories = await _todoRepo.GetDistinctCategoriesAsync();
+            var fromTasks = await _todoRepo.GetDistinctCategoriesAsync();
+
+            var all = _seededCategories
+                .Concat(fromTasks)
+                .Where(c => !string.IsNullOrWhiteSpace(c) && c != "All Categories")
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(c => c);
+
             Categories.Clear();
-            foreach (var c in categories)
+            foreach (var c in all)
                 Categories.Add(c);
+        }
+
+        private List<string> _seededCategories = new();
+
+        /// <summary>
+        /// Pre-loads the categories currently visible in the main window's
+        /// sidebar so newly created (task-less) categories appear too.
+        /// Call before LoadCategoriesAsync.
+        /// </summary>
+        public void SeedCategories(IEnumerable<string> categories)
+        {
+            _seededCategories = categories?.ToList() ?? new List<string>();
         }
 
         public void LoadItem(TodoItem item)

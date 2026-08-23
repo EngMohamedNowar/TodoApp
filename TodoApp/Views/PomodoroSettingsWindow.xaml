@@ -411,6 +411,7 @@
 
                 <TextBox
                     x:Name="WorkBox"
+                    Text="{Binding WorkText}"
                     Style="{StaticResource DarkTextBoxStyle}"/>
 
             </StackPanel>
@@ -424,6 +425,7 @@
 
                 <TextBox
                     x:Name="ShortBreakBox"
+                    Text="{Binding ShortBreakText}"
                     Style="{StaticResource DarkTextBoxStyle}"/>
 
             </StackPanel>
@@ -437,6 +439,7 @@
 
                 <TextBox
                     x:Name="LongBreakBox"
+                    Text="{Binding LongBreakText}"
                     Style="{StaticResource DarkTextBoxStyle}"/>
 
             </StackPanel>
@@ -450,6 +453,7 @@
 
                 <TextBox
                     x:Name="SessionsBox"
+                    Text="{Binding SessionsText}"
                     Style="{StaticResource DarkTextBoxStyle}"/>
 
             </StackPanel>

@@ -333,6 +333,7 @@
                     <!-- Progress Bar -->
 
                     <Border
+                        x:Name="CardProgressTrack"
                         Height="8"
                         CornerRadius="4"
                         Background="{StaticResource InputBrush}"
@@ -340,8 +341,20 @@
 
                         <Border
                             HorizontalAlignment="Left"
-                            CornerRadius="4"
-                            behaviors:SmoothAnimation.TargetWidth="{Binding CompletionPercentage, Converter={StaticResource PercentageToWidthConverter}, ConverterParameter=190}">
+                            CornerRadius="4">
+
+                            <behaviors:SmoothAnimation.TargetWidth>
+
+                                <MultiBinding Converter="{StaticResource PercentOfTrackConverter}">
+
+                                    <Binding Path="CompletionPercentage"/>
+
+                                    <Binding ElementName="CardProgressTrack"
+                                             Path="ActualWidth"/>
+
+                                </MultiBinding>
+
+                            </behaviors:SmoothAnimation.TargetWidth>
 
                             <Border.Background>
 

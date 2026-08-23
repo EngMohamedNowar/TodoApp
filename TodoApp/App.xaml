@@ -10,6 +10,7 @@
             <conv:StringNullOrEmptyToVisibilityConverter x:Key="StringNullOrEmptyToVisibilityConverter"/>
             <conv:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
             <conv:PercentageToWidthConverter x:Key="PercentageToWidthConverter"/>
+            <conv:PercentOfTrackConverter x:Key="PercentOfTrackConverter"/>
             <conv:PomodoroModeToBrushConverter x:Key="PomodoroModeToBrushConverter"/>
             <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis"/>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>

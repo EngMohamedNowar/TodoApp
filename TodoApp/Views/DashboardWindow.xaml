@@ -245,15 +245,30 @@
 
                                 </Grid>
 
-                                <Border Height="6"
+                                <Border x:Name="CategoryTrack"
+                                        Height="6"
                                         CornerRadius="3"
                                         Background="{StaticResource InputBrush}"
                                         Margin="0,7,0,0">
 
                                     <Border HorizontalAlignment="Left"
                                             CornerRadius="3"
-                                            Width="{Binding Percent, Converter={StaticResource PercentageToWidthConverter}, ConverterParameter=380}"
-                                            Background="{StaticResource AccentBrushDark}"/>
+                                            Background="{StaticResource AccentBrushDark}">
+
+                                        <Border.Width>
+
+                                            <MultiBinding Converter="{StaticResource PercentOfTrackConverter}">
+
+                                                <Binding Path="Percent"/>
+
+                                                <Binding ElementName="CategoryTrack"
+                                                         Path="ActualWidth"/>
+
+                                            </MultiBinding>
+
+                                        </Border.Width>
+
+                                    </Border>
 
                                 </Border>
 
