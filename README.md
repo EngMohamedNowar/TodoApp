@@ -161,4 +161,4 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-Developed by **Eng. Mohamed Nowar**
+Developed by **[Eng. Mohamed Nowar](https://github.com/EngMohamedNowar)**
