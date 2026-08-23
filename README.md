@@ -33,9 +33,6 @@ All data is stored locally in `%AppData%\TodoApp\todo.db`. No accounts, no cloud
 ### Theme Picker
 ![Theme Picker](screenshots/theme-picker.png)
 
-### Multi-Select
-![Multi-Select](screenshots/selected.png)
-
 ---
 
 ## ✨ Features
