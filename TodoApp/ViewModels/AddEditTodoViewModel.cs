@@ -125,7 +125,7 @@ namespace TodoApp.ViewModels
             Title = item.Title;
             Description = item.Description ?? string.Empty;
             SelectedCategory = item.Category ?? string.Empty;
-            DueDate = item.DueDate ?? DateTime.Today;
+            DueDate = item.DueDate;
 
             SelectedPriorityIndex = item.Priority switch
             {

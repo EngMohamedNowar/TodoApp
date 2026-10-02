@@ -14,6 +14,14 @@ namespace TodoApp.Repositories
     /// </summary>
     public class TodoRepository : ITodoRepository
     {
+        /// <summary>
+        /// The app resolves this repository from the root container, so every caller
+        /// shares one <see cref="TodoDbContext"/>. EF Core contexts are not
+        /// re-entrant, so saves are serialized to stop two overlapping operations
+        /// (e.g. a command handler and the AI agent) from colliding.
+        /// </summary>
+        private static readonly SemaphoreSlim SaveGate = new(1, 1);
+
         private readonly TodoDbContext _db;
 
         public TodoRepository(TodoDbContext db)
@@ -89,7 +97,15 @@ namespace TodoApp.Repositories
 
         public async Task<int> SaveChangesAsync(CancellationToken ct = default)
         {
-            return await _db.SaveChangesAsync(ct);
+            await SaveGate.WaitAsync(ct);
+            try
+            {
+                return await _db.SaveChangesAsync(ct);
+            }
+            finally
+            {
+                SaveGate.Release();
+            }
         }
 
         public async Task<List<string>> GetDistinctCategoriesAsync(CancellationToken ct = default)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -10,53 +11,67 @@ namespace TodoApp.Views
 {
     public partial class AddEditTodoWindow : Window
     {
+        private readonly bool _isEditing;
+
         public TodoItem? ResultItem { get; private set; }
         public AddEditTodoViewModel ViewModel { get; }
 
         public AddEditTodoWindow(bool isSubTask = false, IEnumerable<string>? existingCategories = null)
         {
             InitializeComponent();
-            ViewModel = App.Services.GetRequiredService<AddEditTodoViewModel>();
-            DataContext = ViewModel;
-            ViewModel.OwnerWindow = this;
-
-            ViewModel.SeedCategories(existingCategories ?? Enumerable.Empty<string>());
+            ViewModel = InitializeViewModel(existingCategories);
             ViewModel.SetNewItem(isSubTask);
-            Loaded += OnNewWindowLoaded;
-        }
-
-        private async void OnNewWindowLoaded(object sender, RoutedEventArgs e)
-        {
-            Loaded -= OnNewWindowLoaded;
-            await ViewModel.LoadCategoriesAsync();
-            HeaderText.Text = "New Task";
-            TitleBox.Focus();
+            _isEditing = false;
+            Loaded += OnWindowLoaded;
         }
 
         public AddEditTodoWindow(TodoItem item, IEnumerable<string>? existingCategories = null)
         {
             InitializeComponent();
-            ViewModel = App.Services.GetRequiredService<AddEditTodoViewModel>();
-            DataContext = ViewModel;
-            ViewModel.OwnerWindow = this;
-
-            ViewModel.SeedCategories(existingCategories ?? Enumerable.Empty<string>());
+            ViewModel = InitializeViewModel(existingCategories);
             ViewModel.SetEditingItem(item);
-            Loaded += OnEditWindowLoaded;
+            _isEditing = true;
+            Loaded += OnWindowLoaded;
         }
 
-        private async void OnEditWindowLoaded(object sender, RoutedEventArgs e)
+        private AddEditTodoViewModel InitializeViewModel(IEnumerable<string>? existingCategories)
         {
-            Loaded -= OnEditWindowLoaded;
-            await ViewModel.LoadCategoriesAsync();
-            HeaderText.Text = "Edit Task";
+            var vm = App.Services.GetRequiredService<AddEditTodoViewModel>();
+            DataContext = vm;
+            vm.OwnerWindow = this;
+            vm.SeedCategories(existingCategories ?? Enumerable.Empty<string>());
+            return vm;
+        }
+
+        private async void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= OnWindowLoaded;
+
+            try
+            {
+                await ViewModel.LoadCategoriesAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Couldn't load categories: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+
             TitleBox.Focus();
-            TitleBox.SelectAll();
+
+            if (_isEditing)
+            {
+                TitleBox.SelectAll();
+            }
         }
 
         private void CategoryBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key != Key.Delete) return;
+            // Shift+Delete (not plain Delete) to avoid clashing with normal text editing
+            if (e.Key != Key.Delete || Keyboard.Modifiers != ModifierKeys.Shift) return;
             if (CategoryBox.SelectedItem == null) return;
 
             var category = CategoryBox.SelectedItem.ToString();
@@ -78,19 +93,30 @@ namespace TodoApp.Views
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            ViewModel.Title = TitleBox.Text;
-            ViewModel.Description = DescriptionBox.Text ?? string.Empty;
-            ViewModel.SelectedCategory = CategoryBox.Text?.Trim() ?? string.Empty;
-            ViewModel.SelectedPriorityIndex = PriorityBox.SelectedIndex;
-            ViewModel.DueDate = DueDatePicker.SelectedDate ?? System.DateTime.Today;
-            ViewModel.RecurrenceIndex = RecurrenceBox.SelectedIndex;
-
-            ViewModel.SaveCommand.Execute(null);
-
-            if (ViewModel.DialogResult)
+            try
             {
-                ResultItem = ViewModel.ResultItem;
-                DialogResult = true;
+                ViewModel.Title = TitleBox.Text;
+                ViewModel.Description = DescriptionBox.Text ?? string.Empty;
+                ViewModel.SelectedCategory = CategoryBox.Text?.Trim() ?? string.Empty;
+                ViewModel.SelectedPriorityIndex = PriorityBox.SelectedIndex;
+                ViewModel.DueDate = DueDatePicker.SelectedDate;
+                ViewModel.RecurrenceIndex = RecurrenceBox.SelectedIndex;
+
+                ViewModel.SaveCommand.Execute(null);
+
+                if (ViewModel.DialogResult)
+                {
+                    ResultItem = ViewModel.ResultItem;
+                    DialogResult = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Couldn't save task: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 

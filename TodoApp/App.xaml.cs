@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TodoApp.Data;
 using TodoApp.Repositories;
+using TodoApp.Services;
 using TodoApp.ViewModels;
 using TodoApp.Views;
 
@@ -32,6 +33,8 @@ namespace TodoApp
             services.AddScoped<ITodoRepository, TodoRepository>();
             services.AddScoped<IFocusSessionRepository, FocusSessionRepository>();
             services.AddScoped<IPomodoroSettingsRepository, PomodoroSettingsRepository>();
+
+            services.AddSingleton<IDialogService, DialogService>();
 
             services.AddTransient<MainViewModel>();
             services.AddTransient<PomodoroViewModel>();

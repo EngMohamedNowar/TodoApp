@@ -6,6 +6,7 @@
         <ResourceDictionary>
 
             <conv:PriorityToBrushConverter x:Key="PriorityToBrushConverter"/>
+            <conv:BoolToAlignConverter x:Key="BoolToAlignConverter"/>
             <conv:BoolToStrikethroughConverter x:Key="BoolToStrikethroughConverter"/>
             <conv:StringNullOrEmptyToVisibilityConverter x:Key="StringNullOrEmptyToVisibilityConverter"/>
             <conv:InverseBooleanConverter x:Key="InverseBooleanConverter"/>

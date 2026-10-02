@@ -31,24 +31,20 @@ namespace TodoApp.ViewModels
 
         public async void Execute(object? parameter)
         {
-            if (_executeAsync != null)
+            try
             {
-                try
-                {
+                if (_executeAsync != null)
                     await _executeAsync(parameter);
-                }
-                catch (Exception ex)
-                {
-                    System.Windows.MessageBox.Show(
-                        $"An error occurred:\n\n{ex.Message}",
-                        "Error",
-                        System.Windows.MessageBoxButton.OK,
-                        System.Windows.MessageBoxImage.Error);
-                }
+                else
+                    _executeSync?.Invoke(parameter);
             }
-            else
+            catch (Exception ex)
             {
-                _executeSync?.Invoke(parameter);
+                System.Windows.MessageBox.Show(
+                    $"An error occurred:\n\n{ex.Message}",
+                    "Error",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
             }
         }
 

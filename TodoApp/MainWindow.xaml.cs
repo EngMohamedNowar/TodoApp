@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -29,11 +29,22 @@ namespace TodoApp
             var current = e.GetPosition(null);
             var diff = _dragStartPoint - current;
 
-            if (System.Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                System.Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+            if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
             {
                 _draggedItem = vm;
-                DragDrop.DoDragDrop(handle, vm, DragDropEffects.Move);
+                try
+                {
+                    DragDrop.DoDragDrop(handle, vm, DragDropEffects.Move);
+                }
+                finally
+                {
+                    // DoDragDrop blocks until the drag ends however it ends
+                    // (successful drop, drop outside any target, or Escape).
+                    // Clearing here guarantees no stale _draggedItem survives
+                    // into the next click, even if Card_Drop never fired.
+                    _draggedItem = null;
+                }
             }
         }
 
@@ -45,15 +56,31 @@ namespace TodoApp
 
         private async void Card_Drop(object sender, DragEventArgs e)
         {
-            if (sender is FrameworkElement card && card.DataContext is TodoItemViewModel targetVm
-                && _draggedItem != null && !ReferenceEquals(_draggedItem, targetVm)
-                && DataContext is MainViewModel viewModel)
+            e.Handled = true;
+
+            if (sender is not FrameworkElement card || card.DataContext is not TodoItemViewModel targetVm
+                || _draggedItem == null || ReferenceEquals(_draggedItem, targetVm)
+                || DataContext is not MainViewModel viewModel)
             {
-                await viewModel.ReorderTodoAsync(_draggedItem, targetVm);
+                return;
             }
 
-            _draggedItem = null;
-            e.Handled = true;
+            // Capture locally: DoDragDrop's finally block may clear the shared
+            // field as soon as this method yields at the first await.
+            var draggedItem = _draggedItem;
+
+            try
+            {
+                await viewModel.ReorderTodoAsync(draggedItem, targetVm);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Couldn't reorder tasks: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
 
         private void Card_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -68,7 +95,7 @@ namespace TodoApp
         private void ManageCategories_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is MainViewModel vm)
-                vm.OpenCategoryDialog();
+                _ = vm.OpenCategoryDialog();
         }
     }
 }

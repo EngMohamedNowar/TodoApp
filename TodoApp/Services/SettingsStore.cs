@@ -33,6 +33,12 @@ namespace TodoApp.Services
         public sealed class AppPreferences
         {
             public string AccentColor { get; set; } = "#8B7CF6";
+
+            /// <summary>Base URL of an OpenAI-compatible server (e.g. LM Studio local server).</summary>
+            public string AiEndpoint { get; set; } = "http://localhost:1234/v1";
+
+            /// <summary>Model identifier to send with requests. LM Studio ignores it when a model is loaded.</summary>
+            public string AiModel { get; set; } = "local-model";
         }
 
         public static AppPreferences Load()

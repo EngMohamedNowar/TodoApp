@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows;
 using System.Windows.Data;
 using TodoApp.Models;
 using TodoApp.Repositories;
-using TodoApp.Views;
+using TodoApp.Services;
 
 namespace TodoApp.ViewModels
 {
@@ -31,6 +30,7 @@ namespace TodoApp.ViewModels
     public class MainViewModel : ViewModelBase, IDisposable
     {
         private readonly ITodoRepository _todoRepo;
+        private readonly IDialogService _dialogs;
         private bool _disposed;
 
         public ObservableCollection<TodoItemViewModel> AllTodos { get; } = new();
@@ -127,11 +127,10 @@ namespace TodoApp.ViewModels
         public RelayCommand OpenDetailCommand { get; }
         public RelayCommand OpenDashboardCommand { get; }
         public RelayCommand OpenThemePickerCommand { get; }
+        public RelayCommand OpenAgentCommand { get; }
         public RelayCommand DeleteSelectedCommand { get; }
         public RelayCommand ClearSelectionCommand { get; }
 
-        private PomodoroWindow? _timerWindow;
-        private DashboardWindow? _dashboardWindow;
         private List<TodoItem>? _lastDeletedItems;
 
         public bool HasSelection => AllTodos.Any(t => t.IsSelected);
@@ -139,9 +138,10 @@ namespace TodoApp.ViewModels
         public IReadOnlyList<TodoItemViewModel> SelectedTodos =>
             AllTodos.Where(t => t.IsSelected).ToList();
 
-        public MainViewModel(ITodoRepository todoRepo)
+        public MainViewModel(ITodoRepository todoRepo, IDialogService dialogs)
         {
             _todoRepo = todoRepo;
+            _dialogs = dialogs;
 
             TodosView = CollectionViewSource.GetDefaultView(AllTodos);
             TodosView.Filter = FilterPredicate;
@@ -156,7 +156,8 @@ namespace TodoApp.ViewModels
                 p => p is TodoItemViewModel);
             ClearCompletedCommand = new RelayCommand(
                 _ => ClearCompleted(),
-                _ => AllTodos.Any(t => t.IsCompleted));
+                _ => AllTodos.Any(t => !t.IsArchived &&
+                                       (t.IsCompleted || t.SubTasks.Any(s => s.IsCompleted))));
             SetFilterCommand = new RelayCommand(p =>
             {
                 if (p is string value && Enum.TryParse<TaskFilter>(value, out var filter))
@@ -167,7 +168,9 @@ namespace TodoApp.ViewModels
             AddSubTaskCommand = new RelayCommand(
                 p => AddSubTask(p as TodoItemViewModel),
                 p => p is TodoItemViewModel);
-            DeleteSubTaskCommand = new RelayCommand(p => DeleteSubTask(p as TodoItemViewModel));
+            DeleteSubTaskCommand = new RelayCommand(
+                p => DeleteSubTask(p as TodoItemViewModel),
+                p => p is TodoItemViewModel);
             UndoDeleteCommand = new RelayCommand(_ => UndoDelete(), _ => _lastDeletedItems != null);
             ToggleFavoriteCommand = new RelayCommand(p => ToggleFavorite(p as TodoItemViewModel));
             ArchiveTaskCommand = new RelayCommand(
@@ -181,6 +184,7 @@ namespace TodoApp.ViewModels
                 p => p is TodoItemViewModel);
             OpenDashboardCommand = new RelayCommand(_ => OpenDashboard());
             OpenThemePickerCommand = new RelayCommand(_ => OpenThemePicker());
+            OpenAgentCommand = new RelayCommand(_ => OpenAgent());
             DeleteSelectedCommand = new RelayCommand(
                 _ => DeleteSelected(),
                 _ => HasSelection);
@@ -210,13 +214,16 @@ namespace TodoApp.ViewModels
                 {
                     var vm = byId[item.Id];
                     if (item.ParentId.HasValue && byId.TryGetValue(item.ParentId.Value, out var parent))
-                        parent.SubTasks.Add(vm);
+                        parent.AddSubTask(vm);
                     else
                         AddToCollection(vm);
                 }
 
                 foreach (var root in AllTodos)
+                {
+                    AttachEvents(root);
                     root.RefreshSubTasks();
+                }
 
                 await RefreshCategoriesAsync();
                 UpdateStatus();
@@ -224,11 +231,9 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
+                _dialogs.ShowError(
                     $"Failed to load tasks:\n\n{ex.Message}",
-                    "Database Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    "Database Error");
             }
         }
 
@@ -258,23 +263,47 @@ namespace TodoApp.ViewModels
                         .Concat(dueToday.Select(t => $"• {t.Title}"))
                         .Take(8));
 
-                MessageBox.Show(
+                _dialogs.ShowInfo(
                     $"{string.Join("\n", lines)}\n\n{details}",
-                    "Task Reminders",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    "Task Reminders");
             }
-            catch
+            catch (Exception ex)
             {
                 // reminders are best-effort; never crash on them
+                System.Diagnostics.Debug.WriteLine($"CheckReminders failed: {ex}");
             }
         }
 
         private void AddToCollection(TodoItemViewModel vm)
         {
-            vm.IsCompletedChanged += OnItemCompletionChanged;
-            vm.SelectionChanged += OnItemSelectionChanged;
             AllTodos.Add(vm);
+            AttachEvents(vm);
+        }
+
+        /// <summary>
+        /// Subscribes a card (and every nested sub-task) to the handlers that persist
+        /// changes. Sub-tasks are added straight onto their parent's collection when the
+        /// tree is rebuilt, so they must be wired up explicitly or ticking their
+        /// checkbox would never reach the database.
+        /// </summary>
+        private void AttachEvents(TodoItemViewModel vm)
+        {
+            vm.IsCompletedChanged -= OnItemCompletionChanged;
+            vm.IsCompletedChanged += OnItemCompletionChanged;
+            vm.SelectionChanged -= OnItemSelectionChanged;
+            vm.SelectionChanged += OnItemSelectionChanged;
+
+            foreach (var sub in vm.SubTasks)
+                AttachEvents(sub);
+        }
+
+        private void DetachEvents(TodoItemViewModel vm)
+        {
+            vm.IsCompletedChanged -= OnItemCompletionChanged;
+            vm.SelectionChanged -= OnItemSelectionChanged;
+
+            foreach (var sub in vm.SubTasks)
+                DetachEvents(sub);
         }
 
         public async System.Threading.Tasks.Task ReorderTodoAsync(TodoItemViewModel dragged, TodoItemViewModel target)
@@ -297,11 +326,7 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to save order:\n\n{ex.Message}",
-                    "Database Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to save order:\n\n{ex.Message}", "Database Error");
             }
 
             TodosView.Refresh();
@@ -317,8 +342,10 @@ namespace TodoApp.ViewModels
                 {
                     foreach (var sub in vm.SubTasks.Where(s => !s.IsCompleted))
                         sub.MarkCompletedQuietly();
-                    vm.RefreshSubTasks();
                 }
+
+                vm.RefreshSubTasks();
+                vm.ParentVm?.RefreshSubTasks();
 
                 if (vm.IsCompleted && vm.Recurrence != RecurrenceType.None)
                     await CreateNextOccurrenceAsync(vm);
@@ -329,11 +356,7 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to save:\n\n{ex.Message}",
-                    "Database Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to save:\n\n{ex.Message}", "Database Error");
             }
         }
 
@@ -404,9 +427,10 @@ namespace TodoApp.ViewModels
                 var inTitle = vm.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false;
                 var inDescription = vm.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false;
                 var inTags = vm.Tags?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false;
-                var inSubTasks = vm.SubTasks.Any(s =>
+                var inSubTasks = vm.SelfAndDescendants().Skip(1).Any(s =>
                     (s.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (s.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
+                    (s.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (s.Tags?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false));
                 if (!inTitle && !inDescription && !inTags && !inSubTasks) return false;
             }
 
@@ -445,138 +469,128 @@ namespace TodoApp.ViewModels
             TodosView.Refresh();
         }
 
-        private void OpenTimer()
-        {
-            if (_timerWindow != null)
-            {
-                _timerWindow.Activate();
-                if (_timerWindow.WindowState == WindowState.Minimized)
-                    _timerWindow.WindowState = WindowState.Normal;
-                return;
-            }
+        private void OpenTimer() => _dialogs.ShowTimer();
 
-            _timerWindow = new PomodoroWindow();
-            if (Application.Current.MainWindow != null)
-                _timerWindow.Owner = Application.Current.MainWindow;
-
-            _timerWindow.Closed += (_, _) => _timerWindow = null;
-            _timerWindow.Show();
-        }
-
-        private async void AddTodo()
+        private async System.Threading.Tasks.Task AddTodo()
         {
             try
             {
-                var dialog = new AddEditTodoWindow(existingCategories: Categories.ToList());
-                if (Application.Current.MainWindow != null)
-                    dialog.Owner = Application.Current.MainWindow;
-
-                if (dialog.ShowDialog() != true || dialog.ResultItem == null) return;
+                var item = _dialogs.NewTask(Categories.ToList());
+                if (item == null) return;
 
                 var minOrder = AllTodos.Count > 0 ? AllTodos.Min(t => t.SortOrder) : 0;
-                dialog.ResultItem.SortOrder = minOrder - 1;
+                item.SortOrder = minOrder - 1;
 
-                await _todoRepo.AddAsync(dialog.ResultItem);
+                await _todoRepo.AddAsync(item);
                 await _todoRepo.SaveChangesAsync();
 
-                AddToCollection(new TodoItemViewModel(dialog.ResultItem));
+                AddToCollection(new TodoItemViewModel(item));
                 TodosView.Refresh();
                 await RefreshCategoriesAsync();
                 UpdateStatus();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to add task:\n\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to add task:\n\n{ex.Message}", "Error");
             }
         }
 
-        private async void AddSubTask(TodoItemViewModel? parent)
+        private async System.Threading.Tasks.Task AddSubTask(TodoItemViewModel? parent)
         {
             if (parent == null) return;
 
             try
             {
-                var dialog = new AddEditTodoWindow(isSubTask: true, existingCategories: Categories.ToList());
-                if (Application.Current.MainWindow != null)
-                    dialog.Owner = Application.Current.MainWindow;
+                if (parent.Model.Id == 0)
+                {
+                    _dialogs.ShowError(
+                        "The parent task has not been saved yet, so its sub-task cannot be linked to it.",
+                        "Cannot Add Sub-Task");
+                    return;
+                }
 
-                if (dialog.ShowDialog() != true || dialog.ResultItem == null) return;
+                var dialog = _dialogs.NewSubTask(Categories.ToList());
+                if (dialog == null) return;
 
-                dialog.ResultItem.ParentId = parent.Model.Id;
-                dialog.ResultItem.SortOrder = parent.SubTasks.Count;
+                dialog.ParentId = parent.Model.Id;
+                dialog.SortOrder = parent.SubTasks.Count;
 
-                await _todoRepo.AddAsync(dialog.ResultItem);
+                await _todoRepo.AddAsync(dialog);
                 await _todoRepo.SaveChangesAsync();
 
-                parent.AddSubTask(new TodoItemViewModel(dialog.ResultItem));
+                var subVm = new TodoItemViewModel(dialog);
+                parent.AddSubTask(subVm);
+                AttachEvents(subVm);
+
                 TodosView.Refresh();
                 UpdateStatus();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to add sub-task:\n\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to add sub-task:\n\n{ex.Message}", "Error");
             }
         }
 
-        private async void DeleteSubTask(TodoItemViewModel? subVm)
+        private async System.Threading.Tasks.Task DeleteSubTask(TodoItemViewModel? subVm)
         {
             if (subVm?.Model.ParentId == null) return;
 
             var parent = AllTodos.FirstOrDefault(t => t.Model.Id == subVm.Model.ParentId);
             if (parent == null) return;
 
-            var confirm = MessageBox.Show(
-                $"Delete \"{subVm.Title}\"?",
-                "Confirm Delete",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (confirm != MessageBoxResult.Yes) return;
+            if (!_dialogs.Confirm($"Delete \"{subVm.Title}\"?", "Confirm Delete")) return;
 
             try
             {
-                await _todoRepo.DeleteAsync(subVm.Model);
+                var subtree = new List<TodoItemViewModel>();
+                CollectSubtree(subVm, subtree);
+
+                // deepest-first so optional FKs are released before their owners go
+                for (int i = subtree.Count - 1; i >= 0; i--)
+                    await _todoRepo.DeleteAsync(subtree[i].Model);
+
                 await _todoRepo.SaveChangesAsync();
 
+                DetachEvents(subVm);
                 parent.SubTasks.Remove(subVm);
                 parent.RefreshSubTasks();
+                subVm.ParentVm = null;
+
+                _lastDeletedItems = subtree.Select(s => CloneItem(s.Model)).ToList();
+                UndoDeleteCommand.RaiseCanExecuteChanged();
+
+                TodosView.Refresh();
+                UpdateStatus();
+                StatusText += "  ·  Ctrl+Z to undo";
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to delete sub-task:\n\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to delete sub-task:\n\n{ex.Message}", "Error");
             }
         }
 
-        private async void EditTodo(TodoItemViewModel? vm)
+        private static void CollectSubtree(TodoItemViewModel node, List<TodoItemViewModel> result)
+        {
+            result.Add(node);
+            foreach (var child in node.SubTasks)
+                CollectSubtree(child, result);
+        }
+
+        private async System.Threading.Tasks.Task EditTodo(TodoItemViewModel? vm)
         {
             if (vm == null) return;
 
             try
             {
-                var dialog = new AddEditTodoWindow(vm.Model, existingCategories: Categories.ToList());
-                if (Application.Current.MainWindow != null)
-                    dialog.Owner = Application.Current.MainWindow;
+                var updated = _dialogs.EditTask(vm.Model, Categories.ToList());
+                if (updated == null) return;
 
-                if (dialog.ShowDialog() != true || dialog.ResultItem == null) return;
-
-                vm.Title = dialog.ResultItem.Title;
-                vm.Description = dialog.ResultItem.Description;
-                vm.Category = dialog.ResultItem.Category;
-                vm.Priority = dialog.ResultItem.Priority;
-                vm.DueDate = dialog.ResultItem.DueDate;
-                vm.Recurrence = dialog.ResultItem.Recurrence;
+                vm.Title = updated.Title;
+                vm.Description = updated.Description;
+                vm.Category = updated.Category;
+                vm.Priority = updated.Priority;
+                vm.DueDate = updated.DueDate;
+                vm.Recurrence = updated.Recurrence;
 
                 await _todoRepo.SaveChangesAsync();
                 await RefreshCategoriesAsync();
@@ -585,43 +599,36 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to edit task:\n\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to edit task:\n\n{ex.Message}", "Error");
             }
         }
 
-        private async void DeleteTodo(TodoItemViewModel? vm)
+        private async System.Threading.Tasks.Task DeleteTodo(TodoItemViewModel? vm)
         {
             if (vm == null) return;
 
-            var result = MessageBox.Show(
-                $"Delete \"{vm.Title}\"?" + (vm.HasSubTasks ? $"\n\nIts {vm.SubTasks.Count} sub-task(s) will also be deleted." : ""),
-                "Confirm Delete",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+            var confirmed = _dialogs.Confirm(
+                $"Delete \"{vm.Title}\"?" +
+                (vm.HasSubTasks ? $"\n\nIts {vm.SubTasks.Count} sub-task(s) will also be deleted." : ""),
+                "Confirm Delete");
 
-            if (result != MessageBoxResult.Yes) return;
+            if (!confirmed) return;
 
             try
             {
-                var snapshot = new List<TodoItem> { CloneItem(vm.Model) };
-                snapshot.AddRange(vm.SubTasks.Select(s => CloneItem(s.Model)));
+                var subtree = new List<TodoItemViewModel>();
+                CollectSubtree(vm, subtree);
+                var snapshot = subtree.Select(s => CloneItem(s.Model)).ToList();
 
-                vm.IsCompletedChanged -= OnItemCompletionChanged;
+                for (int i = subtree.Count - 1; i >= 0; i--)
+                    await _todoRepo.DeleteAsync(subtree[i].Model);
 
-                if (vm.HasSubTasks)
-                    foreach (var sub in vm.SubTasks.ToList())
-                        await _todoRepo.DeleteAsync(sub.Model);
-
-                await _todoRepo.DeleteAsync(vm.Model);
                 await _todoRepo.SaveChangesAsync();
 
                 _lastDeletedItems = snapshot;
                 UndoDeleteCommand.RaiseCanExecuteChanged();
 
+                DetachEvents(vm);
                 AllTodos.Remove(vm);
                 await RefreshCategoriesAsync();
                 UpdateStatus();
@@ -630,13 +637,8 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                vm.IsCompletedChanged += OnItemCompletionChanged;
-                vm.SelectionChanged += OnItemSelectionChanged;
-                MessageBox.Show(
-                    $"Failed to delete task:\n\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                AttachEvents(vm);
+                _dialogs.ShowError($"Failed to delete task:\n\n{ex.Message}", "Error");
             }
         }
 
@@ -661,7 +663,7 @@ namespace TodoApp.ViewModels
             Attachments = source.Attachments
         };
 
-        private async void UndoDelete()
+        private async System.Threading.Tasks.Task UndoDelete()
         {
             if (_lastDeletedItems == null || _lastDeletedItems.Count == 0) return;
 
@@ -669,12 +671,19 @@ namespace TodoApp.ViewModels
             {
                 var idMap = new Dictionary<int, int>();
                 var pending = new List<TodoItem>(_lastDeletedItems);
-                var guard = 0;
 
+                // Ids of the rows we are about to re-insert. A child whose parent is NOT in
+                // this set still exists in the database, so its original ParentId must be
+                // kept instead of being orphaned into a root-level task.
+                var restoringIds = new HashSet<int>(pending.Select(i => i.Id));
+
+                var guard = 0;
                 while (pending.Count > 0 && guard++ < 100)
                 {
                     var batch = pending
-                        .Where(i => i.ParentId == null || idMap.ContainsKey(i.ParentId.Value))
+                        .Where(i => i.ParentId == null
+                                    || !restoringIds.Contains(i.ParentId.Value)
+                                    || idMap.ContainsKey(i.ParentId.Value))
                         .ToList();
 
                     if (batch.Count == 0)
@@ -715,45 +724,57 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Failed to restore:\n\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to restore:\n\n{ex.Message}", "Error");
             }
         }
 
-        private async void ClearCompleted()
+        private async System.Threading.Tasks.Task ClearCompleted()
         {
-            var completed = AllTodos
+            var completedRoots = AllTodos
                 .Where(t => t.IsCompleted && !t.IsArchived)
                 .ToList();
-            if (!completed.Any()) return;
 
-            var confirmResult = MessageBox.Show(
-                $"Remove {completed.Count} completed task(s)?",
-                "Confirm",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+            // Children ticked off individually under a still-active parent
+            var completedChildren = AllTodos
+                .Where(t => !t.IsCompleted && !t.IsArchived)
+                .SelectMany(t => t.SubTasks)
+                .Where(s => s.IsCompleted && !s.IsArchived)
+                .ToList();
 
-            if (confirmResult != MessageBoxResult.Yes) return;
+            var total = completedRoots.Count + completedChildren.Count;
+            if (total == 0) return;
+
+            if (!_dialogs.Confirm($"Remove {total} completed task(s)?")) return;
 
             try
             {
-                _lastDeletedItems = completed
-                    .SelectMany(t => new[] { t }.Concat(t.SubTasks))
-                    .Select(t => CloneItem(t.Model))
+                var nodes = completedRoots
+                    .Concat(completedChildren)
+                    .SelectMany(t => t.SelfAndDescendants())
                     .ToList();
+
+                var snapshot = nodes.Select(t => CloneItem(t.Model)).ToList();
+
+                await _todoRepo.DeleteRangeAsync(nodes.Select(t => t.Model));
+                await _todoRepo.SaveChangesAsync();
+
+                _lastDeletedItems = snapshot;
                 UndoDeleteCommand.RaiseCanExecuteChanged();
 
-                foreach (var item in completed)
+                foreach (var item in completedRoots)
                 {
-                    item.IsCompletedChanged -= OnItemCompletionChanged;
+                    DetachEvents(item);
                     AllTodos.Remove(item);
                 }
 
-                await _todoRepo.DeleteRangeAsync(completed.SelectMany(t => new[] { t.Model }.Concat(t.SubTasks.Select(s => s.Model))));
-                await _todoRepo.SaveChangesAsync();
+                foreach (var child in completedChildren)
+                {
+                    DetachEvents(child);
+                    child.ParentVm?.SubTasks.Remove(child);
+                    child.ParentVm?.RefreshSubTasks();
+                    child.ParentVm = null;
+                }
+
                 await RefreshCategoriesAsync();
                 UpdateStatus();
 
@@ -761,18 +782,16 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                foreach (var item in completed)
-                    item.IsCompletedChanged += OnItemCompletionChanged;
+                foreach (var item in completedRoots)
+                    AttachEvents(item);
+                foreach (var child in completedChildren)
+                    AttachEvents(child);
 
-                MessageBox.Show(
-                    $"Failed to clear completed tasks:\n\n{ex.Message}",
-                    "Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to clear completed tasks:\n\n{ex.Message}", "Error");
             }
         }
 
-        private async void ToggleFavorite(TodoItemViewModel? vm)
+        private async System.Threading.Tasks.Task ToggleFavorite(TodoItemViewModel? vm)
         {
             if (vm == null) return;
             vm.IsFavorite = !vm.IsFavorite;
@@ -783,12 +802,11 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to save favorite:\n\n{ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to save favorite:\n\n{ex.Message}", "Error");
             }
         }
 
-        private async void ArchiveTask(TodoItemViewModel? vm)
+        private async System.Threading.Tasks.Task ArchiveTask(TodoItemViewModel? vm)
         {
             if (vm == null) return;
 
@@ -800,12 +818,11 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to archive:\n\n{ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to archive:\n\n{ex.Message}", "Error");
             }
         }
 
-        private async void UnarchiveTask(TodoItemViewModel? vm)
+        private async System.Threading.Tasks.Task UnarchiveTask(TodoItemViewModel? vm)
         {
             if (vm == null) return;
 
@@ -819,24 +836,19 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to unarchive:\n\n{ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to unarchive:\n\n{ex.Message}", "Error");
             }
         }
 
-        public async void OpenDetail(TodoItemViewModel? vm)
+        public async System.Threading.Tasks.Task OpenDetail(TodoItemViewModel? vm)
         {
             if (vm == null) return;
 
             try
             {
-                var dialog = new TaskDetailWindow(vm.Model, Categories.ToList());
-                if (Application.Current.MainWindow != null)
-                    dialog.Owner = Application.Current.MainWindow;
+                var updated = _dialogs.ShowTaskDetail(vm.Model, Categories.ToList());
+                if (updated == null) return;
 
-                if (dialog.ShowDialog() != true || dialog.ResultItem == null) return;
-
-                var updated = dialog.ResultItem;
                 vm.Title = updated.Title;
                 vm.Description = updated.Description;
                 vm.Category = updated.Category;
@@ -854,34 +866,21 @@ namespace TodoApp.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to save task details:\n\n{ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to save task details:\n\n{ex.Message}", "Error");
             }
         }
 
-        private void OpenDashboard()
-        {
-            if (_dashboardWindow != null)
-            {
-                _dashboardWindow.Activate();
-                return;
-            }
-
-            _dashboardWindow = new DashboardWindow(AllTodos.ToList());
-            if (Application.Current.MainWindow != null)
-                _dashboardWindow.Owner = Application.Current.MainWindow;
-            _dashboardWindow.Closed += (_, _) => _dashboardWindow = null;
-            _dashboardWindow.Show();
-        }
+        private void OpenDashboard() => _dialogs.ShowDashboard(AllTodos.ToList());
 
         private void OpenThemePicker()
         {
-            var dialog = new ThemePickerWindow();
-            if (Application.Current.MainWindow != null)
-                dialog.Owner = Application.Current.MainWindow;
-            dialog.ShowDialog();
-
+            _dialogs.ShowThemePicker();
             TodosView.Refresh();
+        }
+
+        private void OpenAgent()
+        {
+            _dialogs.ShowAgent(_todoRepo, LoadFromDatabaseAsync);
         }
 
         private void ClearSelection()
@@ -890,42 +889,46 @@ namespace TodoApp.ViewModels
                 t.IsSelected = false;
         }
 
-        private async void DeleteSelected()
+        private async System.Threading.Tasks.Task DeleteSelected()
         {
             var selected = SelectedTodos;
             if (selected.Count == 0) return;
 
-            var result = MessageBox.Show(
-                $"Delete {selected.Count} selected task(s)?",
-                "Confirm Delete",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes) return;
+            if (!_dialogs.Confirm($"Delete {selected.Count} selected task(s)?", "Confirm Delete"))
+                return;
 
             try
             {
                 var snapshot = new List<TodoItem>();
+                var subtreeMap = new Dictionary<TodoItemViewModel, List<TodoItemViewModel>>();
+
                 foreach (var vm in selected)
                 {
-                    snapshot.Add(CloneItem(vm.Model));
-                    snapshot.AddRange(vm.SubTasks.Select(s => CloneItem(s.Model)));
-
-                    vm.IsCompletedChanged -= OnItemCompletionChanged;
-                    vm.SelectionChanged -= OnItemSelectionChanged;
-
-                    if (vm.HasSubTasks)
-                        foreach (var sub in vm.SubTasks.ToList())
-                            await _todoRepo.DeleteAsync(sub.Model);
-
-                    await _todoRepo.DeleteAsync(vm.Model);
-                    AllTodos.Remove(vm);
+                    var subtree = new List<TodoItemViewModel>();
+                    CollectSubtree(vm, subtree);
+                    subtreeMap[vm] = subtree;
+                    snapshot.AddRange(subtree.Select(s => CloneItem(s.Model)));
                 }
+
+                var ordered = selected
+                    .SelectMany(vm => subtreeMap[vm])
+                    .GroupBy(t => t)
+                    .Select(g => g.Key)
+                    .ToList();
+
+                for (int i = ordered.Count - 1; i >= 0; i--)
+                    await _todoRepo.DeleteAsync(ordered[i].Model);
 
                 await _todoRepo.SaveChangesAsync();
 
                 _lastDeletedItems = snapshot;
                 UndoDeleteCommand.RaiseCanExecuteChanged();
+
+                foreach (var vm in selected)
+                {
+                    DetachEvents(vm);
+                    AllTodos.Remove(vm);
+                }
 
                 OnPropertyChanged(nameof(HasSelection));
                 DeleteSelectedCommand.RaiseCanExecuteChanged();
@@ -935,8 +938,7 @@ namespace TodoApp.ViewModels
             catch (Exception ex)
             {
                 await LoadFromDatabaseAsync();
-                MessageBox.Show($"Failed to delete selection:\n\n{ex.Message}", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogs.ShowError($"Failed to delete selection:\n\n{ex.Message}", "Error");
             }
         }
 
@@ -947,7 +949,8 @@ namespace TodoApp.ViewModels
             Categories.Add("All Categories");
 
             var categories = AllTodos
-                .SelectMany(t => new[] { t.Category }.Concat(t.SubTasks.Select(s => s.Category)))
+                .SelectMany(t => t.SelfAndDescendants())
+                .Select(t => t.Category)
                 .Where(c => !string.IsNullOrWhiteSpace(c))
                 .Select(c => c!)
                 .Distinct()
@@ -959,21 +962,18 @@ namespace TodoApp.ViewModels
             SelectedCategory = Categories.Contains(current) ? current : "All Categories";
         }
 
-        public async void OpenCategoryDialog()
+        public async System.Threading.Tasks.Task OpenCategoryDialog()
         {
-            var dialog = new AddCategoryWindow(Categories);
-            if (Application.Current.MainWindow != null)
-                dialog.Owner = Application.Current.MainWindow;
+            var result = _dialogs.ShowCategoryDialog(Categories.ToList());
+            if (result == null) return;
 
-            if (dialog.ShowDialog() != true) return;
-
-            if (dialog.IsDelete)
+            if (result.IsDelete)
             {
-                await DeleteCategoryAsync(dialog.CategoryToDelete);
+                await DeleteCategoryAsync(result.CategoryToDelete);
                 return;
             }
 
-            var newCategory = dialog.CategoryName;
+            var newCategory = result.CategoryName;
             if (string.IsNullOrWhiteSpace(newCategory)) return;
 
             if (!Categories.Contains(newCategory))
@@ -989,7 +989,7 @@ namespace TodoApp.ViewModels
             if (category == "All Categories" || category == "Uncategorized") return;
 
             var todosWithCategory = AllTodos
-                .SelectMany(t => new[] { t }.Concat(t.SubTasks))
+                .SelectMany(t => t.SelfAndDescendants())
                 .Where(t => string.Equals(t.Category, category, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
@@ -1010,10 +1010,14 @@ namespace TodoApp.ViewModels
 
         private void UpdateStatus()
         {
-            var visible = AllTodos.Where(t => !t.IsArchived).ToList();
+            var visible = AllTodos
+                .Where(t => !t.IsArchived)
+                .SelectMany(t => t.SelfAndDescendants())
+                .ToList();
+
             var total = visible.Count;
-            var active = visible.Count(t => !t.IsCompleted);
-            var completed = total - active;
+            var completed = visible.Count(t => t.IsCompleted);
+            var active = total - completed;
 
             StatusText = $"{active} active / {total} total";
             TotalCount = total;
@@ -1029,12 +1033,11 @@ namespace TodoApp.ViewModels
             _disposed = true;
 
             foreach (var todo in AllTodos)
-            {
-                todo.IsCompletedChanged -= OnItemCompletionChanged;
-                todo.SelectionChanged -= OnItemSelectionChanged;
-            }
+                DetachEvents(todo);
 
-            AllTodos.Clear();
+            // Deliberately not clearing AllTodos: the collection is about to be
+            // discarded with this instance, and notifying its CollectionView is a
+            // no-op that throws if Dispose ever runs off the view's dispatcher.
         }
     }
 }

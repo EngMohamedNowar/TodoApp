@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using TodoApp.Models;
@@ -82,11 +83,27 @@ namespace TodoApp.ViewModels
 
         public ObservableCollection<TodoItemViewModel> SubTasks { get; }
 
+        /// <summary>
+        /// The parent card this sub-task hangs off of, or null for a root task.
+        /// Used to refresh the parent's "n/m" progress label when a child is ticked.
+        /// </summary>
+        public TodoItemViewModel? ParentVm { get; internal set; }
+
         public void AddSubTask(TodoItemViewModel subVm)
         {
             subVm.Model.ParentId = Model.Id;
+            subVm.ParentVm = this;
             SubTasks.Add(subVm);
             RefreshSubTasks();
+        }
+
+        /// <summary>This item plus every descendant, depth first.</summary>
+        public IEnumerable<TodoItemViewModel> SelfAndDescendants()
+        {
+            yield return this;
+            foreach (var sub in SubTasks)
+                foreach (var nested in sub.SelfAndDescendants())
+                    yield return nested;
         }
 
         public bool HasSubTasks => SubTasks.Count > 0;

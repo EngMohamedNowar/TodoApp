@@ -360,9 +360,10 @@ namespace TodoApp.ViewModels
                 System.Threading.Thread.Sleep(70);
                 Console.Beep(1174, 220);
             }
-            catch
+            catch (Exception ex)
             {
-                try { SystemSounds.Asterisk.Play(); } catch { }
+                System.Diagnostics.Debug.WriteLine($"Console.Beep unavailable: {ex.Message}");
+                try { SystemSounds.Asterisk.Play(); } catch { /* audio is best-effort */ }
             }
         }
 

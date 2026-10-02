@@ -413,7 +413,7 @@
              ===================================================== -->
 
         <TextBlock x:Name="HeaderText"
-                   Text="New Task"
+                   Text="{Binding HeaderText}"
                    FontSize="22"
                    FontWeight="SemiBold"
                    Foreground="{StaticResource TextPrimaryBrush}"
@@ -431,13 +431,14 @@
                    Margin="0,0,0,7"/>
 
 
-        <TextBox x:Name="TitleBox"
-                 Grid.Row="2"
-                 Height="38"
-                 Padding="10,0"
-                 VerticalContentAlignment="Center"
-                 Margin="0,0,0,18"
-                 Style="{StaticResource DarkTextBoxStyle}"/>
+            <TextBox x:Name="TitleBox"
+                      Grid.Row="2"
+                      Height="38"
+                      Padding="10,0"
+                      VerticalContentAlignment="Center"
+                      Margin="0,0,0,18"
+                      Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+                      Style="{StaticResource DarkTextBoxStyle}"/>
 
 
         <!-- =====================================================
@@ -451,16 +452,17 @@
                    Margin="0,0,0,7"/>
 
 
-        <TextBox x:Name="DescriptionBox"
-                 Grid.Row="4"
-                 FontSize="13"
-                 Height="80"
-                 Padding="10,8"
-                 TextWrapping="Wrap"
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"
-                 Margin="0,0,0,18"
-                 Style="{StaticResource DarkTextBoxStyle}"/>
+            <TextBox x:Name="DescriptionBox"
+                     Grid.Row="4"
+                     FontSize="13"
+                     Height="80"
+                     Padding="10,8"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalScrollBarVisibility="Auto"
+                     Margin="0,0,0,18"
+                     Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                     Style="{StaticResource DarkTextBoxStyle}"/>
 
 
         <!-- =====================================================
@@ -507,14 +509,15 @@
                  ================================================= -->
 
             <ComboBox x:Name="CategoryBox"
-                      Grid.Row="1"
-                      Grid.Column="0"
-                      Height="38"
-                      IsEditable="True"
-                      IsTextSearchEnabled="True"
-                      VerticalContentAlignment="Center"
-                      ItemsSource="{Binding Categories}"
-                      Style="{StaticResource DarkComboBoxStyle}"/>
+                       Grid.Row="1"
+                       Grid.Column="0"
+                       Height="38"
+                       IsEditable="True"
+                       IsTextSearchEnabled="True"
+                       VerticalContentAlignment="Center"
+                       ItemsSource="{Binding Categories}"
+                       Text="{Binding SelectedCategory, UpdateSourceTrigger=PropertyChanged}"
+                       Style="{StaticResource DarkComboBoxStyle}"/>
 
 
             <!-- =================================================
@@ -537,7 +540,7 @@
                       Grid.Row="1"
                       Grid.Column="2"
                       Height="38"
-                      SelectedIndex="1"
+                      SelectedIndex="{Binding SelectedPriorityIndex}"
                       VerticalContentAlignment="Center"
                       Style="{StaticResource DarkComboBoxStyle}">
 
@@ -602,12 +605,13 @@
                         VerticalContentAlignment="Center"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Top"
+                        SelectedDate="{Binding DueDate}"
                         Style="{StaticResource DarkDatePickerStyle}"/>
 
             <ComboBox x:Name="RecurrenceBox"
                       Grid.Column="2"
                       Height="38"
-                      SelectedIndex="0"
+                      SelectedIndex="{Binding RecurrenceIndex}"
                       VerticalContentAlignment="Center"
                       Style="{StaticResource DarkComboBoxStyle}">
 

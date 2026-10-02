@@ -174,6 +174,14 @@
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{Binding OpenTimerCommand}"/>
 
+                    <Button
+                        Content="🤖  AI Agent"
+                        Height="34"
+                        Margin="0,0,0,4"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding OpenAgentCommand}"
+                        ToolTip="Chat with your local AI model"/>
+
                     <Grid Margin="0,6,0,0">
 
                         <Grid.ColumnDefinitions>
@@ -1037,10 +1045,76 @@
                                         <!-- Sub-tasks -->
                                         <!-- ================================================= -->
 
-                                        <ItemsControl
-                                            ItemsSource="{Binding SubTasks}"
+                                        <StackPanel
                                             Margin="0,8,0,0"
                                             Visibility="{Binding HasSubTasks, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                                            <!-- n/m progress -->
+
+                                            <Grid Margin="0,0,0,6">
+
+                                                <Grid.ColumnDefinitions>
+
+                                                    <ColumnDefinition Width="Auto"/>
+
+                                                    <ColumnDefinition Width="*"/>
+
+                                                    <ColumnDefinition Width="Auto"/>
+
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Text="Sub-tasks"
+                                                    FontSize="11"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{StaticResource TextSecondaryBrush}"
+                                                    VerticalAlignment="Center"
+                                                    Margin="0,0,8,0"/>
+
+                                                <Border
+                                                    Grid.Column="1"
+                                                    x:Name="SubTaskProgressTrack"
+                                                    Height="5"
+                                                    CornerRadius="3"
+                                                    Background="{StaticResource InputBrush}"
+                                                    VerticalAlignment="Center">
+
+                                                    <Border
+                                                        HorizontalAlignment="Left"
+                                                        CornerRadius="3"
+                                                        Background="{StaticResource AccentBrush}">
+
+                                                        <behaviors:SmoothAnimation.TargetWidth>
+
+                                                            <MultiBinding Converter="{StaticResource PercentOfTrackConverter}">
+
+                                                                <Binding Path="SubTaskProgress"/>
+
+                                                                <Binding ElementName="SubTaskProgressTrack"
+                                                                         Path="ActualWidth"/>
+
+                                                            </MultiBinding>
+
+                                                        </behaviors:SmoothAnimation.TargetWidth>
+
+                                                    </Border>
+
+                                                </Border>
+
+                                                <TextBlock
+                                                    Grid.Column="2"
+                                                    Text="{Binding SubTaskLabel}"
+                                                    FontSize="11"
+                                                    FontWeight="Bold"
+                                                    Foreground="{StaticResource AccentBrush}"
+                                                    VerticalAlignment="Center"
+                                                    Margin="8,0,0,0"/>
+
+                                            </Grid>
+
+                                            <ItemsControl
+                                                ItemsSource="{Binding SubTasks}">
 
                                             <ItemsControl.ItemsPanel>
 
@@ -1089,19 +1163,38 @@
                                                                 TextTrimming="CharacterEllipsis"
                                                                 TextDecorations="{Binding IsCompleted, Converter={StaticResource BoolToStrikethroughConverter}}"/>
 
-                                                            <Button
+                                                            <StackPanel
                                                                 Grid.Column="2"
-                                                                Content="&#xE74D;"
-                                                                FontFamily="Segoe MDL2 Assets"
-                                                                FontSize="10"
-                                                                Background="Transparent"
-                                                                BorderThickness="0"
-                                                                Foreground="{StaticResource TextMutedBrush}"
-                                                                Cursor="Hand"
+                                                                Orientation="Horizontal"
                                                                 VerticalAlignment="Center"
-                                                                Margin="6,0,0,0"
-                                                                Command="{Binding DataContext.DeleteSubTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                                                CommandParameter="{Binding}"/>
+                                                                Margin="6,0,0,0">
+
+                                                                <Button
+                                                                    Content="&#xE70F;"
+                                                                    FontFamily="Segoe MDL2 Assets"
+                                                                    FontSize="10"
+                                                                    Background="Transparent"
+                                                                    BorderThickness="0"
+                                                                    Foreground="{StaticResource TextMutedBrush}"
+                                                                    Cursor="Hand"
+                                                                    ToolTip="Edit sub-task"
+                                                                    Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+
+                                                                <Button
+                                                                    Content="&#xE74D;"
+                                                                    FontFamily="Segoe MDL2 Assets"
+                                                                    FontSize="10"
+                                                                    Background="Transparent"
+                                                                    BorderThickness="0"
+                                                                    Foreground="{StaticResource TextMutedBrush}"
+                                                                    Cursor="Hand"
+                                                                    ToolTip="Delete sub-task"
+                                                                    Margin="8,0,0,0"
+                                                                    Command="{Binding DataContext.DeleteSubTaskCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                                    CommandParameter="{Binding}"/>
+
+                                                            </StackPanel>
 
                                                         </Grid>
 
@@ -1112,6 +1205,8 @@
                                             </ItemsControl.ItemTemplate>
 
                                         </ItemsControl>
+
+                                        </StackPanel>
 
                                     </StackPanel>
 
