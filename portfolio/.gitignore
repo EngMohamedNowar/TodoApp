@@ -1,0 +1,7 @@
+.vs/
+GymManagementSystem/
+server.log
+server_err.log
+bin/
+obj/
+*.user
