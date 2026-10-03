@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Threading;
 using TodoApp.Models;
 using TodoApp.Repositories;
+using TodoApp.Services;
 using TodoApp.Views;
 
 namespace TodoApp.ViewModels
@@ -47,7 +48,16 @@ namespace TodoApp.ViewModels
             OpenSettingsCommand = new RelayCommand(_ => OpenSettings());
             OpenStatsCommand = new RelayCommand(_ => OpenStats());
 
+            ThemeService.AccentChanged += OnAccentChanged;
+
             _ = InitializeAsync();
+        }
+
+        private void OnAccentChanged(object? sender, EventArgs e)
+        {
+            // The mode brush comes from a converter, so re-run it.
+            OnPropertyChanged(nameof(Mode));
+            OnPropertyChanged(nameof(ModeLabel));
         }
 
         private async Task InitializeAsync()
@@ -413,6 +423,7 @@ namespace TodoApp.ViewModels
             _disposed = true;
             _timer.Stop();
             _timer.Tick -= Timer_Tick;
+            ThemeService.AccentChanged -= OnAccentChanged;
         }
     }
 }

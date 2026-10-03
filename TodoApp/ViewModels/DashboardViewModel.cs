@@ -13,6 +13,9 @@ namespace TodoApp.ViewModels
         public string Label { get; set; } = "";
         public string Value { get; set; } = "";
         public string Accent { get; set; } = "#8B7CF6";
+
+        /// <summary>True for the card that follows the live accent colour.</summary>
+        public bool IsPrimary { get; set; }
     }
 
     public class DayCompletionViewModel : ViewModelBase
@@ -101,7 +104,8 @@ namespace TodoApp.ViewModels
             {
                 Label = "Total tasks",
                 Value = total.ToString(),
-                Accent = Services.ThemeService.CurrentAccentColor.ToString()
+                Accent = Services.ThemeService.CurrentAccentColor.ToString(),
+                IsPrimary = true
             });
             StatCards.Add(new StatCardViewModel
             {

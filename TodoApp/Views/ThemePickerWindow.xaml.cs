@@ -40,10 +40,19 @@ namespace TodoApp.Views
             {
                 ThemeService.ApplyAccent(preset.Hex);
 
+                var idle = new SolidColorBrush(Color.FromRgb(0x2B, 0x2D, 0x3A));
+
                 foreach (Border other in SwatchesPanel.Children)
-                    other.BorderThickness = new Thickness(1);
+                {
+                    if (other.Child is Button previous)
+                    {
+                        previous.BorderThickness = new Thickness(1);
+                        previous.BorderBrush = idle;
+                    }
+                }
 
                 button.BorderThickness = new Thickness(3);
+                button.BorderBrush = Brushes.White;
             };
 
             return new Border

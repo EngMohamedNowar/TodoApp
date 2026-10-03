@@ -26,6 +26,9 @@ namespace TodoApp.Services
         /// <summary>Accent in effect right now; converters and view models read it.</summary>
         public static Color CurrentAccentColor { get; private set; } = Color.FromRgb(0x8B, 0x7C, 0xF6);
 
+        /// <summary>Raised after every accent change so bindings that resolve once can refresh.</summary>
+        public static event EventHandler? AccentChanged;
+
         public static void ApplyAccent(string hex, bool persist = true)
         {
             if (!TryParseHex(hex, out var baseColor)) return;
@@ -47,6 +50,8 @@ namespace TodoApp.Services
 
             if (persist)
                 Save(hex);
+
+            AccentChanged?.Invoke(null, EventArgs.Empty);
         }
 
         private static void SetBrush(string key, Color color)

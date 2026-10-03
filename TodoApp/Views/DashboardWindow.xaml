@@ -79,8 +79,18 @@
 
                             <TextBlock Text="{Binding Value}"
                                        FontSize="26"
-                                       FontWeight="Bold"
-                                       Foreground="{Binding Accent}"/>
+                                       FontWeight="Bold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{Binding Accent}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsPrimary}" Value="True">
+                                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
 
                             <TextBlock Text="{Binding Label}"
                                        FontSize="11.5"

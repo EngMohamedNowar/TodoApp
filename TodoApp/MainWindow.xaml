@@ -132,11 +132,11 @@
                                 EndPoint="1,1">
 
                                 <GradientStop
-                                    Color="{StaticResource AccentColor}"
+                                    Color="{DynamicResource AccentColor}"
                                     Offset="0"/>
 
                                 <GradientStop
-                                    Color="{StaticResource AccentColorDark}"
+                                    Color="{DynamicResource AccentColorDark}"
                                     Offset="1"/>
 
                             </LinearGradientBrush>
@@ -372,11 +372,11 @@
                                     EndPoint="1,0">
 
                                     <GradientStop
-                                        Color="{StaticResource AccentColor}"
+                                        Color="{DynamicResource AccentColor}"
                                         Offset="0"/>
 
                                     <GradientStop
-                                        Color="{StaticResource AccentColorDark}"
+                                        Color="{DynamicResource AccentColorDark}"
                                         Offset="1"/>
 
                                 </LinearGradientBrush>

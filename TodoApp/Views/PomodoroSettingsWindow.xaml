@@ -71,7 +71,7 @@
 
                             <Border.Effect>
                                 <DropShadowEffect x:Name="GlowEffect"
-                                                   Color="{StaticResource AccentColor}"
+                                                   Color="{DynamicResource AccentColor}"
                                                    BlurRadius="0"
                                                    ShadowDepth="0"
                                                    Opacity="0"/>
