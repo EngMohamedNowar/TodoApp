@@ -63,7 +63,7 @@
                          Foreground="{StaticResource TextPrimaryBrush}"
                          BorderBrush="{StaticResource BorderBrush2}"
                          BorderThickness="1" VerticalContentAlignment="Center"/>
-                <TextBlock Text="Model name (optional)"
+                <TextBlock Text="Model name (leave empty to auto-select the loaded model)"
                            FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" Margin="0,10,0,4"/>
                 <TextBox Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}"
                          Height="40" FontSize="13"
@@ -71,6 +71,9 @@
                          Foreground="{StaticResource TextPrimaryBrush}"
                          BorderBrush="{StaticResource BorderBrush2}"
                          BorderThickness="1" VerticalContentAlignment="Center"/>
+                <TextBlock Text="Local server, no API key needed. Start it in LM Studio → Developer → Start Server."
+                           FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"
+                           Margin="0,6,0,0"/>
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <Button Content="Save" Width="80" Height="36"
                             Style="{StaticResource SecondaryButtonStyle}"

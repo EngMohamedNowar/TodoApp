@@ -48,6 +48,53 @@ namespace TodoApp.Services
             Model = string.IsNullOrWhiteSpace(model) ? "local-model" : model;
         }
 
+        /// <summary>Model ids the server currently exposes, or an empty list when it is unreachable.</summary>
+        public async Task<IReadOnlyList<string>> GetModelsAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(6) };
+                var json = await http.GetStringAsync(Endpoint.TrimEnd('/') + "/models", ct);
+                using var doc = JsonDocument.Parse(json);
+
+                if (doc.RootElement.ValueKind != JsonValueKind.Object) return Array.Empty<string>();
+                if (!doc.RootElement.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array)
+                    return Array.Empty<string>();
+
+                var ids = new List<string>();
+                foreach (var item in data.EnumerateArray())
+                {
+                    if (item.ValueKind != JsonValueKind.Object) continue;
+                    if (item.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String)
+                    {
+                        var value = id.GetString();
+                        if (!string.IsNullOrWhiteSpace(value)) ids.Add(value);
+                    }
+                }
+
+                return ids;
+            }
+            catch
+            {
+                return Array.Empty<string>();
+            }
+        }
+
+        /// <summary>
+        /// The local server only accepts model ids it has loaded, so fall back to the
+        /// first loaded model whenever the configured name cannot be used.
+        /// </summary>
+        private async Task<string> EnsureUsableModelAsync(CancellationToken ct)
+        {
+            if (!string.IsNullOrWhiteSpace(Model) && Model != "local-model") return Model;
+
+            var models = await GetModelsAsync(ct);
+            if (models.Count == 0) return Model;
+
+            Model = models[0];
+            return Model;
+        }
+
         /// <summary>Runs the agent on a user message using the running conversation history.</summary>
         public async Task<string> RunAsync(
             string userMessage,
@@ -57,11 +104,13 @@ namespace TodoApp.Services
         {
             history.Add(new ReqMsg { Role = "user", Content = userMessage });
 
+            var model = await EnsureUsableModelAsync(ct);
+
             for (int step = 0; step < 8; step++)
             {
                 var request = new ChatRequest
                 {
-                    Model = Model,
+                    Model = model,
                     Messages = history,
                     Tools = BuildTools()
                 };
@@ -78,7 +127,9 @@ namespace TodoApp.Services
                 catch (Exception ex)
                 {
                     history.RemoveAt(history.Count - 1);
-                    return $"⚠ Could not reach the AI server at {Endpoint}. Is LM Studio running with the Local Server started?\n\n({ex.Message})";
+                    return "⚠ Could not reach the AI server at " + Endpoint + ".\n" +
+                           "Open LM Studio → Developer tab → Start Server (default port 1234), " +
+                           "then press \"Test connection\" here.\n\n(" + ex.Message + ")";
                 }
 
                 if (!response.IsSuccessStatusCode)

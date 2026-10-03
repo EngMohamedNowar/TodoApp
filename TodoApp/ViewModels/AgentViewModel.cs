@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Net.Http;
 using System.Windows.Input;
 using TodoApp.Models;
@@ -23,7 +24,7 @@ namespace TodoApp.ViewModels
         private bool _isBusy;
         private string _endpoint;
         private string _model;
-        private string _statusText = "Ready. Make sure LM Studio's Local Server is running.";
+        private string _statusText = "Ready. Start LM Studio → Developer → Start Server first (no API key needed).";
 
         public ObservableCollection<ChatMessage> Messages { get; } = new();
 
@@ -98,11 +99,16 @@ namespace TodoApp.ViewModels
 
             try
             {
+                _agent.ApplySettings(Endpoint, Model);
+
                 var reply = await _agent.RunAsync(text, _history, onToolUsed: tool =>
                 {
                     Messages.Add(new ChatMessage { Role = "tool", Text = tool });
                     ScrollToEndRequested?.Invoke(this, EventArgs.Empty);
                 });
+
+                if (Model != _agent.Model)
+                    Model = _agent.Model;
 
                 Messages.Add(new ChatMessage { Role = "assistant", Text = reply });
                 StatusText = "Ready.";
@@ -142,17 +148,43 @@ namespace TodoApp.ViewModels
                 var resp = await http.GetAsync(url);
                 if (resp.IsSuccessStatusCode)
                 {
-                    var body = await resp.Content.ReadAsStringAsync();
-                    StatusText = "✅ Connected to AI server.";
+                    var models = await _agent.GetModelsAsync();
+                    if (models.Count == 0)
+                    {
+                        StatusText = "✅ Connected, but no model is loaded. Load one in LM Studio first.";
+                    }
+                    else
+                    {
+                        var wanted = (Model ?? string.Empty).Trim();
+                        var picked = models.FirstOrDefault(m =>
+                            !string.IsNullOrEmpty(wanted) &&
+                            m.Equals(wanted, StringComparison.OrdinalIgnoreCase));
+
+                        if (picked == null) picked = models[0];
+
+                        if (picked != wanted)
+                        {
+                            Model = picked;
+                            _agent.ApplySettings(Endpoint, picked);
+                            var prefs = SettingsStore.Load();
+                            prefs.AiModel = picked;
+                            SettingsStore.Save(prefs);
+                        }
+
+                        StatusText = models.Count == 1
+                            ? $"✅ Connected. Using model {picked}."
+                            : $"✅ Connected. {models.Count} models loaded, using {picked}.";
+                    }
                 }
                 else
                 {
                     StatusText = $"⚠ Server responded with {resp.StatusCode}.";
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                StatusText = $"⚠ Cannot reach server: {ex.Message}";
+                StatusText = "⚠ Cannot reach the server. Start LM Studio → Developer → Start Server, " +
+                             "then press \"Test connection\" again.";
             }
             finally
             {
