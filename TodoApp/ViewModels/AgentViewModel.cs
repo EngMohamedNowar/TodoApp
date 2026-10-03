@@ -61,6 +61,15 @@ namespace TodoApp.ViewModels
         public ICommand SendCommand { get; }
         public ICommand SaveSettingsCommand { get; }
         public ICommand TestConnectionCommand { get; }
+        public ICommand StartServerCommand { get; }
+
+        /// <summary>Drives the green/red dot next to the status line.</summary>
+        private bool _serverUp;
+        public bool ServerUp
+        {
+            get => _serverUp;
+            set => SetField(ref _serverUp, value);
+        }
 
         public AgentViewModel(ITodoRepository repo, Func<System.Threading.Tasks.Task>? onTasksChanged = null)
         {
@@ -73,6 +82,7 @@ namespace TodoApp.ViewModels
                 _ => !IsBusy && !string.IsNullOrWhiteSpace(Input));
             SaveSettingsCommand = new RelayCommand(_ => SaveSettings());
             TestConnectionCommand = new RelayCommand(_ => TestConnectionAsync());
+            StartServerCommand = new RelayCommand(_ => StartServerAsync(), _ => !IsBusy);
 
             _history.Add(new AiAgentService.ReqMsg
             {
@@ -83,6 +93,60 @@ namespace TodoApp.ViewModels
                           "After using a tool, briefly tell the user what you did in their language (Arabic or English). " +
                           "Never invent task ids; use the ids returned by list_tasks/search_tasks."
             });
+
+            _ = CheckConnectionAsync();
+        }
+
+        private async System.Threading.Tasks.Task CheckConnectionAsync()
+        {
+            var up = await _agent.IsServerUpAsync();
+            ServerUp = up;
+
+            if (IsBusy) return;
+
+            StatusText = up
+                ? "✅ Local server is running."
+                : "⚠ Local server is not running. Press \"Start LM Studio\".";
+        }
+
+        private async System.Threading.Tasks.Task StartServerAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            try
+            {
+                StatusText = "Starting LM Studio...";
+
+                if (LmStudioLocator.Start() == null)
+                {
+                    ServerUp = false;
+                    StatusText = "❌ LM Studio was not found on this PC. Install it, or start its server yourself.";
+                    return;
+                }
+
+                for (var elapsed = 1; elapsed <= 60; elapsed++)
+                {
+                    await System.Threading.Tasks.Task.Delay(1000);
+
+                    if (await _agent.IsServerUpAsync())
+                    {
+                        ServerUp = true;
+                        await AdoptLoadedModelAsync();
+                        return;
+                    }
+
+                    StatusText = $"Waiting for the local server... {elapsed}s";
+                }
+
+                ServerUp = false;
+                StatusText = "⚠ LM Studio opened, but its server is still off. " +
+                             "Turn it on in LM Studio → Developer → Start Server.";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private async System.Threading.Tasks.Task SendAsync()
@@ -110,11 +174,17 @@ namespace TodoApp.ViewModels
                 if (Model != _agent.Model)
                     Model = _agent.Model;
 
+                if (reply.StartsWith("⚠ Could not reach", StringComparison.Ordinal))
+                    ServerUp = false;
+
                 Messages.Add(new ChatMessage { Role = "assistant", Text = reply });
-                StatusText = "Ready.";
+                StatusText = ServerUp
+                    ? "Ready."
+                    : "⚠ Cannot reach the server. Press \"Start LM Studio\".";
             }
             catch (Exception ex)
             {
+                ServerUp = false;
                 Messages.Add(new ChatMessage { Role = "assistant", Text = $"⚠ Error: {ex.Message}" });
                 StatusText = "Error.";
             }
@@ -143,53 +213,52 @@ namespace TodoApp.ViewModels
 
             try
             {
-                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(8) };
-                var url = Endpoint.TrimEnd('/') + "/models";
-                var resp = await http.GetAsync(url);
-                if (resp.IsSuccessStatusCode)
+                ServerUp = await _agent.IsServerUpAsync();
+
+                if (!ServerUp)
                 {
-                    var models = await _agent.GetModelsAsync();
-                    if (models.Count == 0)
-                    {
-                        StatusText = "✅ Connected, but no model is loaded. Load one in LM Studio first.";
-                    }
-                    else
-                    {
-                        var wanted = (Model ?? string.Empty).Trim();
-                        var picked = models.FirstOrDefault(m =>
-                            !string.IsNullOrEmpty(wanted) &&
-                            m.Equals(wanted, StringComparison.OrdinalIgnoreCase));
-
-                        if (picked == null) picked = models[0];
-
-                        if (picked != wanted)
-                        {
-                            Model = picked;
-                            _agent.ApplySettings(Endpoint, picked);
-                            var prefs = SettingsStore.Load();
-                            prefs.AiModel = picked;
-                            SettingsStore.Save(prefs);
-                        }
-
-                        StatusText = models.Count == 1
-                            ? $"✅ Connected. Using model {picked}."
-                            : $"✅ Connected. {models.Count} models loaded, using {picked}.";
-                    }
+                    StatusText = "⚠ Cannot reach the server. Press \"Start LM Studio\" to launch it, " +
+                                 "then wait for the green dot.";
+                    return;
                 }
-                else
-                {
-                    StatusText = $"⚠ Server responded with {resp.StatusCode}.";
-                }
-            }
-            catch (Exception)
-            {
-                StatusText = "⚠ Cannot reach the server. Start LM Studio → Developer → Start Server, " +
-                             "then press \"Test connection\" again.";
+
+                await AdoptLoadedModelAsync();
             }
             finally
             {
                 IsBusy = false;
             }
+        }
+
+        /// <summary>Reads the loaded models and points the agent at one that actually exists.</summary>
+        private async System.Threading.Tasks.Task AdoptLoadedModelAsync()
+        {
+            var models = await _agent.GetModelsAsync();
+            if (models.Count == 0)
+            {
+                StatusText = "✅ Connected, but no model is loaded. Load one in LM Studio first.";
+                return;
+            }
+
+            var wanted = (Model ?? string.Empty).Trim();
+            var picked = models.FirstOrDefault(m =>
+                !string.IsNullOrEmpty(wanted) &&
+                m.Equals(wanted, StringComparison.OrdinalIgnoreCase));
+
+            if (picked == null) picked = models[0];
+
+            if (picked != wanted)
+            {
+                Model = picked;
+                _agent.ApplySettings(Endpoint, picked);
+                var prefs = SettingsStore.Load();
+                prefs.AiModel = picked;
+                SettingsStore.Save(prefs);
+            }
+
+            StatusText = models.Count == 1
+                ? $"✅ Connected. Using model {picked}."
+                : $"✅ Connected. {models.Count} models loaded, using {picked}.";
         }
 
         public event EventHandler? ScrollToEndRequested;

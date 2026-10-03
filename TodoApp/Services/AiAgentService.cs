@@ -48,6 +48,21 @@ namespace TodoApp.Services
             Model = string.IsNullOrWhiteSpace(model) ? "local-model" : model;
         }
 
+        /// <summary>True when the configured server answers on /models.</summary>
+        public async Task<bool> IsServerUpAsync(CancellationToken ct = default)
+        {
+            try
+            {
+                using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+                var resp = await http.GetAsync(Endpoint.TrimEnd('/') + "/models", ct);
+                return resp.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         /// <summary>Model ids the server currently exposes, or an empty list when it is unreachable.</summary>
         public async Task<IReadOnlyList<string>> GetModelsAsync(CancellationToken ct = default)
         {
@@ -128,8 +143,8 @@ namespace TodoApp.Services
                 {
                     history.RemoveAt(history.Count - 1);
                     return "⚠ Could not reach the AI server at " + Endpoint + ".\n" +
-                           "Open LM Studio → Developer tab → Start Server (default port 1234), " +
-                           "then press \"Test connection\" here.\n\n(" + ex.Message + ")";
+                           "Press \"Start LM Studio\" above, or open LM Studio → Developer tab → Start Server " +
+                           "(default port 1234), then press \"Test connection\".\n\n(" + ex.Message + ")";
                 }
 
                 if (!response.IsSuccessStatusCode)

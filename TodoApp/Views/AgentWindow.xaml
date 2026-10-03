@@ -96,7 +96,6 @@
                             <Border Margin="0,0,0,10"
                                     Padding="10,8"
                                     CornerRadius="9"
-                                    MaxWidth="440"
                                     HorizontalAlignment="{Binding IsUser, Converter={StaticResource BoolToAlignConverter}}">
                                 <Border.Style>
                                     <Style TargetType="Border">
@@ -175,11 +174,57 @@
                     Command="{Binding SendCommand}"/>
         </Grid>
 
-        <TextBlock Grid.Row="4"
-                   Text="{Binding StatusText}"
-                   FontSize="11"
-                   Foreground="{StaticResource TextMutedBrush}"
-                   Margin="2,6,0,0"/>
+        <Grid Grid.Row="4" Margin="2,6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Ellipse Width="9" Height="9" Margin="0,0,7,0" VerticalAlignment="Center">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Fill" Value="#E05252"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ServerUp}" Value="True">
+                                    <Setter Property="Fill" Value="#3FBF6F"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding StatusText}"
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           VerticalAlignment="Center"/>
+            </Grid>
+
+            <Button Grid.Column="1"
+                    Content="Start LM Studio"
+                    Width="130" Height="34"
+                    Margin="8,0,0,0"
+                    Command="{Binding StartServerCommand}"
+                    ToolTip="Launch LM Studio and wait for its local server">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ServerUp}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
     </Grid>
 
 </Window>
