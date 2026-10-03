@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Extensions.DependencyInjection;
+using TodoApp.Helpers;
 using TodoApp.Models;
 using TodoApp.ViewModels;
 
@@ -46,6 +48,12 @@ namespace TodoApp.Views
         private async void OnWindowLoaded(object sender, RoutedEventArgs e)
         {
             Loaded -= OnWindowLoaded;
+
+            foreach (var choice in TaskIcons.Choices)
+                if (!IconBox.Items.Contains(choice))
+                    IconBox.Items.Add(choice);
+
+            IconBox.SelectedIndex = Math.Max(0, Array.IndexOf(TaskIcons.Choices, ViewModel.Icon));
 
             try
             {
@@ -91,6 +99,12 @@ namespace TodoApp.Views
             e.Handled = true;
         }
 
+        private void DescriptionBox_TextChanged(object sender, TextChangedEventArgs e) =>
+            TextBoxAutoGrow.Resize(DescriptionBox);
+
+        private void DescriptionBox_SizeChanged(object sender, SizeChangedEventArgs e) =>
+            TextBoxAutoGrow.Resize(DescriptionBox);
+
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -101,6 +115,8 @@ namespace TodoApp.Views
                 ViewModel.SelectedPriorityIndex = PriorityBox.SelectedIndex;
                 ViewModel.DueDate = DueDatePicker.SelectedDate;
                 ViewModel.RecurrenceIndex = RecurrenceBox.SelectedIndex;
+                ViewModel.Tags = TagsBox.Text ?? string.Empty;
+                ViewModel.Icon = IconBox.SelectedItem is string icon && icon.Length > 0 ? icon : null;
 
                 ViewModel.SaveCommand.Execute(null);
 

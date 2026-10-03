@@ -3,21 +3,16 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Win32;
+using TodoApp.Helpers;
 using TodoApp.Models;
 
 namespace TodoApp.Views
 {
     public partial class TaskDetailWindow : Window
     {
-        private static readonly string[] IconChoices =
-        {
-            "", "\uD83D\uDCCB", "\uD83D\uDE80", "\uD83D\uDD25", "\u2B50",
-            "\uD83C\uDFAF", "\uD83E\uDDED", "\uD83D\uDCBC", "\uD83C\uDFE0",
-            "\uD83D\uDCF1", "\uD83C\uDF93", "\uD83C\uDFE5", "\uD83D\uDE97", "\uD83C\uDF89"
-        };
-
         public TodoItem? ResultItem { get; private set; }
 
         private readonly TodoItem _item;
@@ -30,9 +25,9 @@ namespace TodoApp.Views
 
             _item = item;
 
-            foreach (var choice in IconChoices)
+            foreach (var choice in TaskIcons.Choices)
                 IconBox.Items.Add(choice);
-            IconBox.SelectedIndex = Math.Max(0, Array.IndexOf(IconChoices, item.Icon ?? ""));
+            IconBox.SelectedIndex = Math.Max(0, Array.IndexOf(TaskIcons.Choices, item.Icon ?? ""));
 
             TitleBox.Text = item.Title;
             DescriptionBox.Text = item.Description ?? string.Empty;
@@ -122,6 +117,12 @@ namespace TodoApp.Views
                     MessageBoxImage.Error);
             }
         }
+
+        private void DescriptionBox_TextChanged(object sender, TextChangedEventArgs e) =>
+            TextBoxAutoGrow.Resize(DescriptionBox);
+
+        private void DescriptionBox_SizeChanged(object sender, SizeChangedEventArgs e) =>
+            TextBoxAutoGrow.Resize(DescriptionBox);
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {

@@ -26,8 +26,12 @@ namespace TodoApp.Services
         public TodoItem? NewSubTask(IReadOnlyList<string> categories)
             => ShowEditDialog(new AddEditTodoWindow(isSubTask: true, existingCategories: categories));
 
+        /// <summary>
+        /// Editing always goes through the same window as double-clicking a task, so
+        /// both paths show identical fields and identical controls.
+        /// </summary>
         public TodoItem? EditTask(TodoItem item, IReadOnlyList<string> categories)
-            => ShowEditDialog(new AddEditTodoWindow(item, existingCategories: categories));
+            => ShowTaskDetail(item, categories);
 
         public TodoItem? ShowTaskDetail(TodoItem item, IReadOnlyList<string> categories)
         {

@@ -38,6 +38,20 @@ namespace TodoApp.ViewModels
             set => SetField(ref _description, value);
         }
 
+        private string _tags = string.Empty;
+        public string Tags
+        {
+            get => _tags;
+            set => SetField(ref _tags, value);
+        }
+
+        private string? _icon;
+        public string? Icon
+        {
+            get => _icon;
+            set => SetField(ref _icon, value);
+        }
+
         private string _selectedCategory = string.Empty;
         public string SelectedCategory
         {
@@ -124,6 +138,8 @@ namespace TodoApp.ViewModels
             HeaderText = "Edit Task";
             Title = item.Title;
             Description = item.Description ?? string.Empty;
+            Tags = item.Tags ?? string.Empty;
+            Icon = item.Icon;
             SelectedCategory = item.Category ?? string.Empty;
             DueDate = item.DueDate;
 
@@ -141,6 +157,8 @@ namespace TodoApp.ViewModels
         public void SetNewItem(bool isSubTask = false)
         {
             HeaderText = isSubTask ? "New Sub-Task" : "New Task";
+            Tags = string.Empty;
+            Icon = null;
             DueDate = DateTime.Today;
             RecurrenceIndex = isSubTask ? 0 : RecurrenceIndex;
         }
@@ -171,6 +189,8 @@ namespace TodoApp.ViewModels
                 _editingItem.Priority = priority;
                 _editingItem.DueDate = DueDate;
                 _editingItem.Recurrence = Recurrence;
+                _editingItem.Tags = string.IsNullOrWhiteSpace(Tags) ? null : Tags.Trim();
+                _editingItem.Icon = string.IsNullOrWhiteSpace(Icon) ? null : Icon;
                 ResultItem = _editingItem;
             }
             else
@@ -184,7 +204,9 @@ namespace TodoApp.ViewModels
                     DueDate = DueDate,
                     CreatedAt = DateTime.Now,
                     IsCompleted = false,
-                    Recurrence = Recurrence
+                    Recurrence = Recurrence,
+                    Tags = string.IsNullOrWhiteSpace(Tags) ? null : Tags.Trim(),
+                    Icon = string.IsNullOrWhiteSpace(Icon) ? null : Icon
                 };
             }
 

@@ -591,6 +591,9 @@ namespace TodoApp.ViewModels
                 vm.Priority = updated.Priority;
                 vm.DueDate = updated.DueDate;
                 vm.Recurrence = updated.Recurrence;
+                vm.Icon = updated.Icon;
+                vm.Tags = updated.Tags;
+                vm.Model.Attachments = updated.Attachments;
 
                 await _todoRepo.SaveChangesAsync();
                 await RefreshCategoriesAsync();
