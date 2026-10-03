@@ -97,7 +97,12 @@ namespace TodoApp.ViewModels
             var overdue = all.Count(t => t.IsOverdue);
             var starred = all.Count(t => t.IsFavorite);
 
-            StatCards.Add(new StatCardViewModel { Label = "Total tasks", Value = total.ToString(), Accent = "#8B7CF6" });
+            StatCards.Add(new StatCardViewModel
+            {
+                Label = "Total tasks",
+                Value = total.ToString(),
+                Accent = Services.ThemeService.CurrentAccentColor.ToString()
+            });
             StatCards.Add(new StatCardViewModel
             {
                 Label = "Completed",

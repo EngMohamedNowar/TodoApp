@@ -11,19 +11,6 @@
         FontFamily="Segoe UI"
         Opacity="0">
 
-    <Window.Resources>
-
-        <Style x:Key="MetaLabelStyle"
-               TargetType="TextBlock">
-
-            <Setter Property="Foreground" Value="#9098A8"/>
-            <Setter Property="FontSize" Value="11.5"/>
-            <Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-
-        </Style>
-
-    </Window.Resources>
 
     <Window.Triggers>
 
@@ -111,10 +98,12 @@
                 Margin="0,10,0,16">
 
                 <TextBlock x:Name="CreatedText"
-                           Style="{StaticResource MetaLabelStyle}"/>
+                           Style="{StaticResource FieldLabelStyle}"
+                           Margin="0,0,10,0"/>
 
                 <TextBlock x:Name="CompletedText"
-                           Style="{StaticResource MetaLabelStyle}"/>
+                           Style="{StaticResource FieldLabelStyle}"
+                           Margin="0,0,10,0"/>
 
             </StackPanel>
 
@@ -125,9 +114,7 @@
 
             <TextBlock Grid.Row="2"
                        Text="Description"
-                       Foreground="#9098A8"
-                       FontSize="12"
-                       Margin="0,0,0,7"/>
+                       Style="{StaticResource FieldLabelStyle}"/>
 
 
             <TextBox x:Name="DescriptionBox"
@@ -170,26 +157,26 @@
 
                 <TextBlock Grid.Row="0" Grid.Column="0"
                            Text="Category"
-                           Style="{StaticResource MetaLabelStyle}"
+                           Style="{StaticResource FieldLabelStyle}"
                            Margin="0,0,0,6"/>
 
 
                 <ComboBox x:Name="CategoryBox"
                           Grid.Row="1" Grid.Column="0"
-                          Height="36"
+                          Height="40"
                           IsEditable="True"
                           VerticalContentAlignment="Center"/>
 
 
                 <TextBlock Grid.Row="0" Grid.Column="2"
                            Text="Priority"
-                           Style="{StaticResource MetaLabelStyle}"
+                           Style="{StaticResource FieldLabelStyle}"
                            Margin="0,0,0,6"/>
 
 
                 <ComboBox x:Name="PriorityBox"
                           Grid.Row="1" Grid.Column="2"
-                          Height="36"
+                          Height="40"
                           SelectedIndex="1"
                           VerticalContentAlignment="Center">
 
@@ -202,25 +189,25 @@
 
                 <TextBlock Grid.Row="2" Grid.Column="0"
                            Text="Due date"
-                           Style="{StaticResource MetaLabelStyle}"
+                           Style="{StaticResource FieldLabelStyle}"
                            Margin="0,14,0,6"/>
 
 
                 <DatePicker x:Name="DueDatePicker"
                             Grid.Row="3" Grid.Column="0"
-                            Height="36"
+                            Height="40"
                             VerticalContentAlignment="Center"/>
 
 
                 <TextBlock Grid.Row="2" Grid.Column="2"
                            Text="Repeat"
-                           Style="{StaticResource MetaLabelStyle}"
+                           Style="{StaticResource FieldLabelStyle}"
                            Margin="0,14,0,6"/>
 
 
                 <ComboBox x:Name="RecurrenceBox"
                           Grid.Row="3" Grid.Column="2"
-                          Height="36"
+                          Height="40"
                           SelectedIndex="0"
                           VerticalContentAlignment="Center">
 
@@ -240,13 +227,13 @@
 
             <TextBlock Grid.Row="5"
                        Text="Tags (comma separated)"
-                       Style="{StaticResource MetaLabelStyle}"
+                       Style="{StaticResource FieldLabelStyle}"
                        Margin="0,0,0,6"/>
 
 
             <TextBox x:Name="TagsBox"
                      Grid.Row="6"
-                     Height="36"
+                     Height="40"
                      Padding="10,0"
                      VerticalContentAlignment="Center"
                      Margin="0,0,0,18"/>
@@ -270,7 +257,7 @@
                 <TextBlock
                     Grid.Column="0"
                     Text="Attachments"
-                    Style="{StaticResource MetaLabelStyle}"/>
+                    Style="{StaticResource FieldLabelStyle}"/>
 
                 <Button x:Name="AddAttachmentButton"
                         Grid.Column="1"
@@ -309,7 +296,7 @@
                                 Grid.Column="0"
                                 Text="&#xE8E5;"
                                 FontFamily="Segoe MDL2 Assets"
-                                Foreground="#8B7CF6"
+                                Foreground="{DynamicResource AccentBrush}"
                                 VerticalAlignment="Center"
                                 Margin="0,0,8,0"/>
 

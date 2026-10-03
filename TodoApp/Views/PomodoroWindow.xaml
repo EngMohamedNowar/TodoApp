@@ -1,6 +1,8 @@
 <Window x:Class="TodoApp.Views.PomodoroWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:helpers="clr-namespace:TodoApp.Helpers"
+        helpers:WindowTheme.DarkTitleBar="True"
         xmlns:behaviors="clr-namespace:TodoApp.Behaviors"
         Title="Focus Timer" Height="480" Width="360"
         WindowStartupLocation="CenterOwner"

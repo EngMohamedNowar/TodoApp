@@ -15,350 +15,6 @@
          RESOURCES
          ========================================================= -->
 
-    <Window.Resources>
-
-        <!-- =====================================================
-             DARK TEXTBOX
-             ===================================================== -->
-
-        <Style x:Key="DarkTextBoxStyle"
-               TargetType="{x:Type TextBox}">
-
-            <Setter Property="Background"
-                    Value="#1B1B24"/>
-
-            <Setter Property="Foreground"
-                    Value="#F5F5F7"/>
-
-            <Setter Property="BorderBrush"
-                    Value="#30303D"/>
-
-            <Setter Property="BorderThickness"
-                    Value="1"/>
-
-            <Setter Property="CaretBrush"
-                    Value="White"/>
-
-            <Setter Property="SelectionBrush"
-                    Value="#5146A5"/>
-
-            <Setter Property="SelectionTextBrush"
-                    Value="White"/>
-
-        </Style>
-
-
-        <!-- =====================================================
-             DARK COMBOBOX
-             ===================================================== -->
-
-        <Style x:Key="DarkComboBoxStyle"
-               TargetType="{x:Type ComboBox}">
-
-            <Setter Property="Background"
-                    Value="#1B1B24"/>
-
-            <Setter Property="Foreground"
-                    Value="#F5F5F7"/>
-
-            <Setter Property="BorderBrush"
-                    Value="#30303D"/>
-
-            <Setter Property="BorderThickness"
-                    Value="1"/>
-
-            <Setter Property="FontSize"
-                    Value="13"/>
-
-            <Setter Property="Padding"
-                    Value="10,0"/>
-
-            <Setter Property="VerticalContentAlignment"
-                    Value="Center"/>
-
-            <Setter Property="Template">
-
-                <Setter.Value>
-
-                    <ControlTemplate TargetType="{x:Type ComboBox}">
-
-                        <Grid>
-
-                            <!-- =================================================
-                                 MAIN COMBOBOX
-                                 ================================================= -->
-
-                            <Border x:Name="MainBorder"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="6">
-
-                                <Grid>
-
-                                    <!-- Editable TextBox -->
-                                    <TextBox x:Name="PART_EditableTextBox"
-                                             Visibility="Collapsed"
-                                             Background="Transparent"
-                                             Foreground="#F5F5F7"
-                                             BorderThickness="0"
-                                             Padding="10,0"
-                                             VerticalContentAlignment="Center"
-                                             CaretBrush="White"
-                                             SelectionBrush="#5146A5"
-                                             SelectionTextBrush="White"/>
-
-
-                                    <!-- Selected Item -->
-                                    <ContentPresenter x:Name="ContentSite"
-                                                      Margin="10,0,40,0"
-                                                      VerticalAlignment="Center"
-                                                      HorizontalAlignment="Left"
-                                                      Content="{TemplateBinding SelectionBoxItem}"
-                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                      ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
-
-
-                                    <!-- Arrow -->
-                                    <ToggleButton x:Name="DropDownButton"
-                                                  Width="36"
-                                                  HorizontalAlignment="Right"
-                                                  Focusable="False"
-                                                  IsChecked="{Binding IsDropDownOpen,
-                                                      RelativeSource={RelativeSource TemplatedParent}}"
-                                                  ClickMode="Press"
-                                                  Background="Transparent"
-                                                  BorderThickness="0">
-
-                                        <Path Data="M 0 0 L 5 5 L 10 0"
-                                              Stroke="#A8A8B8"
-                                              StrokeThickness="1.5"
-                                              HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-
-                                    </ToggleButton>
-
-                                </Grid>
-
-                            </Border>
-
-
-                            <!-- =================================================
-                                 DROPDOWN
-                                 ================================================= -->
-
-                            <Popup x:Name="PART_Popup"
-                                   Placement="Bottom"
-                                   AllowsTransparency="True"
-                                   Focusable="False"
-                                   IsOpen="{TemplateBinding IsDropDownOpen}"
-                                   PopupAnimation="Fade">
-
-                                <Border Width="{Binding ActualWidth,
-                                                RelativeSource={RelativeSource TemplatedParent}}"
-                                        Background="#1B1B24"
-                                        BorderBrush="#3A3948"
-                                        BorderThickness="1"
-                                        CornerRadius="6"
-                                        Margin="0,4,0,0">
-
-                                    <ScrollViewer MaxHeight="220"
-                                                  VerticalScrollBarVisibility="Auto"
-                                                  HorizontalScrollBarVisibility="Disabled">
-
-                                        <ItemsPresenter/>
-
-                                    </ScrollViewer>
-
-                                </Border>
-
-                            </Popup>
-
-                        </Grid>
-
-
-                        <!-- =================================================
-                             COMBOBOX TRIGGERS
-                             ================================================= -->
-
-                        <ControlTemplate.Triggers>
-
-                            <!-- Hover -->
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-
-                                <Setter TargetName="MainBorder"
-                                        Property="BorderBrush"
-                                        Value="#5146A5"/>
-
-                            </Trigger>
-
-
-                            <!-- Focus -->
-                            <Trigger Property="IsKeyboardFocusWithin"
-                                     Value="True">
-
-                                <Setter TargetName="MainBorder"
-                                        Property="BorderBrush"
-                                        Value="#6D5DD3"/>
-
-                            </Trigger>
-
-
-                            <!-- Editable -->
-                            <Trigger Property="IsEditable"
-                                     Value="True">
-
-                                <Setter TargetName="PART_EditableTextBox"
-                                        Property="Visibility"
-                                        Value="Visible"/>
-
-                                <Setter TargetName="ContentSite"
-                                        Property="Visibility"
-                                        Value="Collapsed"/>
-
-                            </Trigger>
-
-
-                            <!-- Disabled -->
-                            <Trigger Property="IsEnabled"
-                                     Value="False">
-
-                                <Setter TargetName="MainBorder"
-                                        Property="Opacity"
-                                        Value="0.5"/>
-
-                            </Trigger>
-
-                        </ControlTemplate.Triggers>
-
-                    </ControlTemplate>
-
-                </Setter.Value>
-
-            </Setter>
-
-
-            <!-- =====================================================
-                 COMBOBOX ITEMS
-                 ===================================================== -->
-
-            <Setter Property="ItemContainerStyle">
-
-                <Setter.Value>
-
-                    <Style TargetType="{x:Type ComboBoxItem}">
-
-                        <Setter Property="Background"
-                                Value="#1B1B24"/>
-
-                        <Setter Property="Foreground"
-                                Value="#F5F5F7"/>
-
-                        <Setter Property="Padding"
-                                Value="10,9"/>
-
-                        <Setter Property="HorizontalContentAlignment"
-                                Value="Stretch"/>
-
-                        <Setter Property="FontSize"
-                                Value="13"/>
-
-                        <Setter Property="Template">
-
-                            <Setter.Value>
-
-                                <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-
-                                    <Border x:Name="ItemBorder"
-                                            Background="{TemplateBinding Background}"
-                                            Padding="{TemplateBinding Padding}">
-
-                                        <ContentPresenter
-                                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                            VerticalAlignment="Center"/>
-
-                                    </Border>
-
-
-                                    <ControlTemplate.Triggers>
-
-                                        <!-- Hover -->
-                                        <Trigger Property="IsMouseOver"
-                                                 Value="True">
-
-                                            <Setter TargetName="ItemBorder"
-                                                    Property="Background"
-                                                    Value="#302A5C"/>
-
-                                            <Setter Property="Foreground"
-                                                    Value="White"/>
-
-                                        </Trigger>
-
-
-                                        <!-- Selected -->
-                                        <Trigger Property="IsSelected"
-                                                 Value="True">
-
-                                            <Setter TargetName="ItemBorder"
-                                                    Property="Background"
-                                                    Value="#5146A5"/>
-
-                                            <Setter Property="Foreground"
-                                                    Value="White"/>
-
-                                        </Trigger>
-
-
-                                        <!-- Disabled -->
-                                        <Trigger Property="IsEnabled"
-                                                 Value="False">
-
-                                            <Setter Property="Opacity"
-                                                    Value="0.5"/>
-
-                                        </Trigger>
-
-                                    </ControlTemplate.Triggers>
-
-                                </ControlTemplate>
-
-                            </Setter.Value>
-
-                        </Setter>
-
-                    </Style>
-
-                </Setter.Value>
-
-            </Setter>
-
-        </Style>
-
-
-        <!-- =====================================================
-             DARK DATEPICKER
-             ===================================================== -->
-
-        <Style x:Key="DarkDatePickerStyle"
-               TargetType="{x:Type DatePicker}">
-
-            <Setter Property="Background"
-                    Value="#1B1B24"/>
-
-            <Setter Property="Foreground"
-                    Value="#F5F5F7"/>
-
-            <Setter Property="BorderBrush"
-                    Value="#30303D"/>
-
-            <Setter Property="BorderThickness"
-                    Value="1"/>
-
-        </Style>
-
-    </Window.Resources>
 
 
     <!-- =========================================================
@@ -414,9 +70,7 @@
 
         <TextBlock x:Name="HeaderText"
                    Text="{Binding HeaderText}"
-                   FontSize="22"
-                   FontWeight="SemiBold"
-                   Foreground="{StaticResource TextPrimaryBrush}"
+                   Style="{StaticResource PageTitleStyle}"
                    Margin="0,0,0,24"/>
 
 
@@ -426,19 +80,16 @@
 
         <TextBlock Grid.Row="1"
                    Text="Title"
-                   Foreground="{StaticResource TextSecondaryBrush}"
-                   FontSize="12"
-                   Margin="0,0,0,7"/>
+                   Style="{StaticResource FieldLabelStyle}"/>
 
 
             <TextBox x:Name="TitleBox"
                       Grid.Row="2"
-                      Height="38"
+                      Height="40"
                       Padding="10,0"
                       VerticalContentAlignment="Center"
                       Margin="0,0,0,18"
-                      Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
-                      Style="{StaticResource DarkTextBoxStyle}"/>
+                      Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"/>
 
 
         <!-- =====================================================
@@ -447,9 +98,7 @@
 
         <TextBlock Grid.Row="3"
                    Text="Description"
-                   Foreground="{StaticResource TextSecondaryBrush}"
-                   FontSize="12"
-                   Margin="0,0,0,7"/>
+                   Style="{StaticResource FieldLabelStyle}"/>
 
 
             <TextBox x:Name="DescriptionBox"
@@ -461,8 +110,7 @@
                      AcceptsReturn="True"
                      VerticalScrollBarVisibility="Auto"
                      Margin="0,0,0,18"
-                     Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                     Style="{StaticResource DarkTextBoxStyle}"/>
+                     Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"/>
 
 
         <!-- =====================================================
@@ -499,9 +147,7 @@
             <TextBlock Grid.Row="0"
                        Grid.Column="0"
                        Text="Category"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       FontSize="12"
-                       Margin="0,0,0,7"/>
+                       Style="{StaticResource FieldLabelStyle}"/>
 
 
             <!-- =================================================
@@ -511,13 +157,12 @@
             <ComboBox x:Name="CategoryBox"
                        Grid.Row="1"
                        Grid.Column="0"
-                       Height="38"
+                       Height="40"
                        IsEditable="True"
                        IsTextSearchEnabled="True"
                        VerticalContentAlignment="Center"
                        ItemsSource="{Binding Categories}"
-                       Text="{Binding SelectedCategory, UpdateSourceTrigger=PropertyChanged}"
-                       Style="{StaticResource DarkComboBoxStyle}"/>
+                       Text="{Binding SelectedCategory, UpdateSourceTrigger=PropertyChanged}"/>
 
 
             <!-- =================================================
@@ -527,9 +172,7 @@
             <TextBlock Grid.Row="0"
                        Grid.Column="2"
                        Text="Priority"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       FontSize="12"
-                       Margin="0,0,0,7"/>
+                       Style="{StaticResource FieldLabelStyle}"/>
 
 
             <!-- =================================================
@@ -539,10 +182,9 @@
             <ComboBox x:Name="PriorityBox"
                       Grid.Row="1"
                       Grid.Column="2"
-                      Height="38"
+                      Height="40"
                       SelectedIndex="{Binding SelectedPriorityIndex}"
-                      VerticalContentAlignment="Center"
-                      Style="{StaticResource DarkComboBoxStyle}">
+                      VerticalContentAlignment="Center">
 
                 <ComboBoxItem Content="Low"/>
 
@@ -574,13 +216,13 @@
 
             <TextBlock Grid.Column="0"
                        Text="Due date"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       FontSize="12"/>
+                       Style="{StaticResource FieldLabelStyle}"
+                       Margin="0,0,0,0"/>
 
             <TextBlock Grid.Column="2"
                        Text="Repeat"
-                       Foreground="{StaticResource TextSecondaryBrush}"
-                       FontSize="12"/>
+                       Style="{StaticResource FieldLabelStyle}"
+                       Margin="0,0,0,0"/>
 
         </Grid>
 
@@ -600,20 +242,18 @@
 
             <DatePicker x:Name="DueDatePicker"
                         Grid.Column="0"
-                        Height="38"
+                        Height="40"
                         Padding="8,0"
                         VerticalContentAlignment="Center"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Top"
-                        SelectedDate="{Binding DueDate}"
-                        Style="{StaticResource DarkDatePickerStyle}"/>
+                        SelectedDate="{Binding DueDate}"/>
 
             <ComboBox x:Name="RecurrenceBox"
                       Grid.Column="2"
-                      Height="38"
+                      Height="40"
                       SelectedIndex="{Binding RecurrenceIndex}"
-                      VerticalContentAlignment="Center"
-                      Style="{StaticResource DarkComboBoxStyle}">
+                      VerticalContentAlignment="Center">
 
                 <ComboBoxItem Content="Never"/>
 

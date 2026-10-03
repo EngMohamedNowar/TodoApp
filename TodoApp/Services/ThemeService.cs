@@ -23,9 +23,14 @@ namespace TodoApp.Services
             new AccentPreset("Red",    "#FF6B6B")
         };
 
+        /// <summary>Accent in effect right now; converters and view models read it.</summary>
+        public static Color CurrentAccentColor { get; private set; } = Color.FromRgb(0x8B, 0x7C, 0xF6);
+
         public static void ApplyAccent(string hex, bool persist = true)
         {
             if (!TryParseHex(hex, out var baseColor)) return;
+
+            CurrentAccentColor = baseColor;
 
             var dark = ChangeBrightness(baseColor, -0.22);
             var soft = Color.FromArgb(0x2A,
@@ -34,6 +39,11 @@ namespace TodoApp.Services
             SetBrush("AccentBrush", baseColor);
             SetBrush("AccentBrushDark", dark);
             SetBrush("AccentSoftBrush", soft);
+            SetBrush("AccentHoverBrush", ChangeBrightness(baseColor, 0.18));
+            SetBrush("AccentPressedBrush", ChangeBrightness(baseColor, -0.15));
+
+            SetColor("AccentColor", baseColor);
+            SetColor("AccentColorDark", dark);
 
             if (persist)
                 Save(hex);
@@ -43,8 +53,10 @@ namespace TodoApp.Services
         {
             var resources = Application.Current.Resources;
 
-            // Mutate the existing brush instance so every StaticResource
-            // reference across all loaded XAML picks up the new color live.
+            // XAML-declared brushes are frozen, so mutation is only possible
+            // when nothing has frozen the entry yet. Either way the entry is
+            // refreshed in place; views reference these keys with
+            // {DynamicResource ...} so they re-resolve the new value live.
             if (resources[key] is SolidColorBrush existing && !existing.IsFrozen)
             {
                 existing.Color = color;
@@ -57,6 +69,16 @@ namespace TodoApp.Services
                 resources[key] = replacement;
             else
                 resources.Add(key, replacement);
+        }
+
+        private static void SetColor(string key, Color color)
+        {
+            var resources = Application.Current.Resources;
+
+            if (resources.Contains(key))
+                resources[key] = color;
+            else
+                resources.Add(key, color);
         }
 
         private static void Save(string hex)

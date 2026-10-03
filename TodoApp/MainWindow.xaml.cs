@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using TodoApp.ViewModels;
 
@@ -96,6 +98,23 @@ namespace TodoApp
         {
             if (DataContext is MainViewModel vm)
                 _ = vm.OpenCategoryDialog();
+        }
+
+        private void PortfolioLink_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Hyperlink link || link.NavigateUri is null)
+                return;
+
+            e.Handled = true;
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(link.NavigateUri.AbsoluteUri) { UseShellExecute = true });
+            }
+            catch (Exception)
+            {
+                // No browser available to open the portfolio.
+            }
         }
     }
 }
