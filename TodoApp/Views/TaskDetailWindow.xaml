@@ -13,31 +13,6 @@
 
     <Window.Resources>
 
-        <Style x:Key="DarkTextBoxStyle"
-               TargetType="{x:Type TextBox}">
-
-            <Setter Property="Background" Value="#1B1B24"/>
-            <Setter Property="Foreground" Value="#F5F5F7"/>
-            <Setter Property="BorderBrush" Value="#30303D"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CaretBrush" Value="White"/>
-            <Setter Property="SelectionBrush" Value="#5146A5"/>
-            <Setter Property="SelectionTextBrush" Value="White"/>
-
-        </Style>
-
-        <Style x:Key="DarkComboBoxStyle"
-               TargetType="{x:Type ComboBox}">
-
-            <Setter Property="Background" Value="#1B1B24"/>
-            <Setter Property="Foreground" Value="#F5F5F7"/>
-            <Setter Property="BorderBrush" Value="#30303D"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Padding" Value="10,0"/>
-
-        </Style>
-
         <Style x:Key="MetaLabelStyle"
                TargetType="TextBlock">
 
@@ -87,8 +62,9 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
 
-            </Grid.RowDefinitions>
+                </Grid.RowDefinitions>
 
 
             <!-- ================================================= -->
@@ -112,8 +88,7 @@
                           Width="64"
                           Height="44"
                           FontSize="20"
-                          SelectedIndex="0"
-                          Style="{StaticResource DarkComboBoxStyle}"/>
+                          SelectedIndex="0"/>
 
                 <TextBox x:Name="TitleBox"
                          Grid.Column="4"
@@ -121,8 +96,7 @@
                          FontSize="19"
                          FontWeight="SemiBold"
                          Padding="10,0"
-                         VerticalContentAlignment="Center"
-                         Style="{StaticResource DarkTextBoxStyle}"/>
+                         VerticalContentAlignment="Center"/>
 
             </Grid>
 
@@ -163,9 +137,9 @@
                      Padding="10,8"
                      TextWrapping="Wrap"
                      AcceptsReturn="True"
+                     VerticalContentAlignment="Top"
                      VerticalScrollBarVisibility="Auto"
-                     Margin="0,0,0,18"
-                     Style="{StaticResource DarkTextBoxStyle}"/>
+                     Margin="0,0,0,18"/>
 
 
             <!-- ================================================= -->
@@ -189,6 +163,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
 
                 </Grid.RowDefinitions>
 
@@ -203,8 +178,7 @@
                           Grid.Row="1" Grid.Column="0"
                           Height="36"
                           IsEditable="True"
-                          VerticalContentAlignment="Center"
-                          Style="{StaticResource DarkComboBoxStyle}"/>
+                          VerticalContentAlignment="Center"/>
 
 
                 <TextBlock Grid.Row="0" Grid.Column="2"
@@ -217,8 +191,7 @@
                           Grid.Row="1" Grid.Column="2"
                           Height="36"
                           SelectedIndex="1"
-                          VerticalContentAlignment="Center"
-                          Style="{StaticResource DarkComboBoxStyle}">
+                          VerticalContentAlignment="Center">
 
                     <ComboBoxItem Content="Low"/>
                     <ComboBoxItem Content="Medium"/>
@@ -249,8 +222,7 @@
                           Grid.Row="3" Grid.Column="2"
                           Height="36"
                           SelectedIndex="0"
-                          VerticalContentAlignment="Center"
-                          Style="{StaticResource DarkComboBoxStyle}">
+                          VerticalContentAlignment="Center">
 
                     <ComboBoxItem Content="Never"/>
                     <ComboBoxItem Content="↻ Daily"/>
@@ -277,8 +249,7 @@
                      Height="36"
                      Padding="10,0"
                      VerticalContentAlignment="Center"
-                     Margin="0,0,0,18"
-                     Style="{StaticResource DarkTextBoxStyle}"/>
+                     Margin="0,0,0,18"/>
 
 
             <!-- ================================================= -->

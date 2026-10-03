@@ -325,13 +325,15 @@
                 <Setter Property="Padding" Value="8"/>
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="SelectionBrush" Value="{StaticResource AccentSoftBrush}"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
                             <Border x:Name="border" Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="8">
-                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsFocused" Value="True">
@@ -384,7 +386,10 @@
                                                    VerticalAlignment="Center" HorizontalAlignment="Left"/>
                                 <TextBox x:Name="PART_EditableTextBox" Visibility="Hidden" Focusable="True"
                                          Background="Transparent" Foreground="{StaticResource TextPrimaryBrush}"
-                                         BorderThickness="0" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                         BorderThickness="0" Margin="0" Padding="{TemplateBinding Padding}"
+                                         VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                         Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent},
+                                                Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          IsReadOnly="{TemplateBinding IsReadOnly}"/>
                                 <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
                                        AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
@@ -435,6 +440,80 @@
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush2}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Padding" Value="6"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DatePicker">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="8">
+                                <Grid x:Name="PART_Root">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <DatePickerTextBox x:Name="PART_TextBox"
+                                                       Grid.Column="0"
+                                                       Background="Transparent"
+                                                       BorderThickness="0"
+                                                       Margin="6,0,0,0"
+                                                       Foreground="{TemplateBinding Foreground}"
+                                                       VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+
+                                    <Button x:Name="PART_Button"
+                                            Grid.Column="1"
+                                            Width="30"
+                                            Margin="0,3,3,3"
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Focusable="False"
+                                            ClickMode="Press">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="Bd" Background="Transparent" CornerRadius="6">
+                                                    <TextBlock Text="&#xE787;"
+                                                               FontFamily="Segoe MDL2 Assets"
+                                                               FontSize="13"
+                                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Bd" Property="Background"
+                                                                Value="{StaticResource CardHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter TargetName="Bd" Property="Background"
+                                                                Value="{StaticResource AccentSoftBrush}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <Popup x:Name="PART_Popup"
+                                           Grid.ColumnSpan="2"
+                                           Placement="Bottom"
+                                           StaysOpen="False"
+                                           AllowsTransparency="True"
+                                           IsOpen="{Binding IsDropDownOpen, Mode=TwoWay,
+                                                    RelativeSource={RelativeSource TemplatedParent}}"/>
+
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.55"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
             <Style TargetType="DatePickerTextBox">
                 <Setter Property="Template">
