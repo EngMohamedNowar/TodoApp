@@ -13,14 +13,19 @@ namespace TodoApp.Tests
 
         private static string RepoRoot()
         {
-            var dir = new DirectoryInfo(AppContext.BaseDirectory);
-            while (dir != null && !File.Exists(Path.Combine(dir.FullName, "TodoApp.sln")))
-                dir = dir.Parent;
+            foreach (var start in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() })
+            {
+                var dir = new DirectoryInfo(start);
+                while (dir != null && !File.Exists(Path.Combine(dir.FullName, "TodoApp.sln")))
+                    dir = dir.Parent;
 
-            if (dir == null)
-                throw new InvalidOperationException("Could not locate repository root from " + AppContext.BaseDirectory);
+                if (dir != null)
+                    return dir.FullName;
+            }
 
-            return dir.FullName;
+            throw new InvalidOperationException(
+                "Could not locate repository root from " + AppContext.BaseDirectory
+                + " or " + Directory.GetCurrentDirectory());
         }
 
         private static XDocument Load(params string[] parts) =>

@@ -359,49 +359,69 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBox">
-                            <Grid>
-                                <ToggleButton x:Name="ToggleButton" Focusable="False"
-                                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
-                                              ClickMode="Press">
-                                    <ToggleButton.Template>
-                                        <ControlTemplate TargetType="ToggleButton">
-                                            <Border Background="{StaticResource InputBrush}" BorderBrush="{StaticResource BorderBrush2}"
-                                                    BorderThickness="1" CornerRadius="8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="24"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <Path Grid.Column="1" Data="M 0 0 L 4 4 L 8 0 Z" Fill="{StaticResource TextSecondaryBrush}"
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="8">
+                                <Grid>
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="30"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <ToggleButton x:Name="ToggleButton" Grid.Column="1" Focusable="False"
+                                                  IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                                  ClickMode="Press">
+                                        <ToggleButton.Template>
+                                            <ControlTemplate TargetType="ToggleButton">
+                                                <Border x:Name="arrowBd" Background="Transparent" CornerRadius="0,7,7,0">
+                                                    <Path Data="M 0 0 L 4 4 L 8 0 Z" Fill="{StaticResource TextSecondaryBrush}"
                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Grid>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </ToggleButton.Template>
-                                </ToggleButton>
-                                <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False"
-                                                   Content="{TemplateBinding SelectionBoxItem}"
-                                                   ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                   Margin="{TemplateBinding Padding}"
-                                                   VerticalAlignment="Center" HorizontalAlignment="Left"/>
-                                <TextBox x:Name="PART_EditableTextBox" Visibility="Hidden" Focusable="True"
-                                         Background="Transparent" Foreground="{StaticResource TextPrimaryBrush}"
-                                         BorderThickness="0" Margin="0" Padding="{TemplateBinding Padding}"
-                                         VerticalAlignment="Center" VerticalContentAlignment="Center"
-                                         Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent},
-                                                Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         IsReadOnly="{TemplateBinding IsReadOnly}"/>
-                                <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
-                                       AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
-                                    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush2}"
-                                            BorderThickness="1" CornerRadius="8" MinWidth="{TemplateBinding ActualWidth}"
-                                            MaxHeight="220" Margin="0,4,0,0">
-                                        <ScrollViewer Margin="4" SnapsToDevicePixels="True">
-                                            <StackPanel IsItemsHost="True"/>
-                                        </ScrollViewer>
-                                    </Border>
-                                </Popup>
-                            </Grid>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="arrowBd" Property="Background"
+                                                                Value="{StaticResource CardHoverBrush}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter TargetName="arrowBd" Property="Background"
+                                                                Value="{StaticResource AccentSoftBrush}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </ToggleButton.Template>
+                                    </ToggleButton>
+
+                                    <ContentPresenter Grid.Column="0" x:Name="ContentSite" IsHitTestVisible="False"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      Margin="{TemplateBinding Padding}"
+                                                      VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+                                    <TextBox Grid.Column="0" x:Name="PART_EditableTextBox"
+                                             Visibility="Hidden" Focusable="True"
+                                             Background="Transparent" Foreground="{StaticResource TextPrimaryBrush}"
+                                             BorderThickness="0" Margin="0" Padding="{TemplateBinding Padding}"
+                                             VerticalAlignment="Center" VerticalContentAlignment="Center"
+                                             Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent},
+                                                    Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             IsReadOnly="{TemplateBinding IsReadOnly}"/>
+
+                                    <Popup Grid.ColumnSpan="2" x:Name="Popup" Placement="Bottom"
+                                           IsOpen="{TemplateBinding IsDropDownOpen}"
+                                           AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                        <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                                                BorderThickness="1" CornerRadius="8" MinWidth="{TemplateBinding ActualWidth}"
+                                                MaxHeight="220" Margin="0,4,0,0">
+                                            <ScrollViewer Margin="4" SnapsToDevicePixels="True">
+                                                <StackPanel IsItemsHost="True"/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Popup>
+
+                                </Grid>
+                            </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsEditable" Value="True">
                                     <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
