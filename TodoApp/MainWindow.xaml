@@ -299,41 +299,80 @@
 
                 <StackPanel Grid.Row="3" Margin="0,0,0,16">
 
-                    <ListBox
-                        ItemsSource="{Binding Categories}"
-                        SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
-                        BorderThickness="0"
-                        Background="Transparent"
-                        MaxHeight="180"
-                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                        ItemContainerStyle="{StaticResource CategoryPillStyle}">
-
-                        <ListBox.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ListBox.ItemsPanel>
-
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock TextTrimming="CharacterEllipsis">
-                                    <Run x:Name="catIcon" Text="🏷&#xA0;&#xA0;"/><Run Text="{Binding Mode=OneWay}"/>
-                                </TextBlock>
-                                <DataTemplate.Triggers>
-                                    <DataTrigger Binding="{Binding}" Value="All Categories">
-                                        <Setter TargetName="catIcon" Property="Text" Value="📂&#xA0;&#xA0;"/>
-                                    </DataTrigger>
-                                </DataTemplate.Triggers>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-
-                    </ListBox>
-
                     <Button
-                        Content="🗂  Manage Categories"
+                        x:Name="CategoriesToggle"
                         Style="{StaticResource FilterButtonStyle}"
-                        Margin="0,0,0,0"
-                        Click="ManageCategories_Click"/>
+                        ToolTip="Show or hide the category list"
+                        Click="CategoriesToggle_Click">
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock
+                                Grid.Column="0"
+                                Text="📂"
+                                HorizontalAlignment="Left"/>
+
+                            <Path
+                                Grid.Column="1"
+                                Data="M 0 0 L 4 4 L 8 0"
+                                Width="8"
+                                Height="4"
+                                Stretch="Fill"
+                                Fill="{StaticResource TextSecondaryBrush}"
+                                VerticalAlignment="Center"
+                                RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform>
+                                    <RotateTransform x:Name="CategoriesChevronRot" Angle="0"/>
+                                </Path.RenderTransform>
+                            </Path>
+                        </Grid>
+
+                    </Button>
+
+                    <StackPanel x:Name="CategoriesPanel" Visibility="Collapsed">
+
+                        <ListBox
+                            Margin="0,6,0,0"
+                            ItemsSource="{Binding Categories}"
+                            SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            MaxHeight="180"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ItemContainerStyle="{StaticResource CategoryPillStyle}">
+
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock TextTrimming="CharacterEllipsis">
+                                        <Run x:Name="catIcon" Text="🏷&#xA0;&#xA0;"/><Run Text="{Binding Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding}" Value="All Categories">
+                                            <Setter TargetName="catIcon" Property="Text" Value="📂&#xA0;&#xA0;"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+
+                        </ListBox>
+
+                        <Button
+                            Content="🗂  Manage Categories"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Margin="0,6,0,0"
+                            Click="ManageCategories_Click"/>
+
+                    </StackPanel>
 
                 </StackPanel>
 
@@ -427,23 +466,15 @@
 
                     <TextBlock Text="Developed by"
                                FontSize="10.5"
-                               Foreground="{StaticResource TextMutedBrush}"/>
+                               Foreground="{StaticResource TextMutedBrush}"
+                               Margin="0,0,0,6"/>
 
-                    <TextBlock Text="Eng Mohamed Nowar"
-                               FontSize="12.5"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}"
-                               Margin="0,2,0,0"/>
-
-                    <TextBlock FontSize="10.5"
-                               Margin="0,5,0,0">
-                        <Hyperlink NavigateUri="https://engmohamednowar.github.io/portfolio/"
-                                   Click="PortfolioLink_Click"
-                                   Foreground="{DynamicResource AccentBrush}"
-                                   TextDecorations="None"
-                                   Cursor="Hand"
-                                   ToolTip="https://engmohamednowar.github.io/portfolio/">engmohamednowar.github.io</Hyperlink>
-                    </TextBlock>
+                    <Button
+                        Content="🌐  Eng Mohamed Nowar"
+                        Style="{StaticResource FilterButtonStyle}"
+                        Tag="https://engmohamednowar.github.io/portfolio/"
+                        ToolTip="https://engmohamednowar.github.io/portfolio/"
+                        Click="PortfolioLink_Click"/>
 
                 </StackPanel>
 
@@ -649,6 +680,26 @@
                         <ComboBoxItem Content="Priority"/>
 
                         <ComboBoxItem Content="Created"/>
+
+                    </ComboBox>
+
+                    <TextBlock
+                        Text="Sub-tasks:"
+                        FontSize="12"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        VerticalAlignment="Center"
+                        Margin="18,0,8,0"/>
+
+                    <ComboBox
+                        x:Name="SubSortBox"
+                        Width="120"
+                        Height="36"
+                        FontSize="12.5"
+                        SelectedIndex="{Binding SubTaskSortModeIndex, Mode=TwoWay}">
+
+                        <ComboBoxItem Content="Manual"/>
+
+                        <ComboBoxItem Content="By Priority"/>
 
                     </ComboBox>
 

@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using TodoApp.ViewModels;
 
@@ -100,16 +99,23 @@ namespace TodoApp
                 _ = vm.OpenCategoryDialog();
         }
 
+        private void CategoriesToggle_Click(object sender, RoutedEventArgs e)
+        {
+            var isOpen = CategoriesPanel.Visibility == Visibility.Visible;
+            CategoriesPanel.Visibility = isOpen ? Visibility.Collapsed : Visibility.Visible;
+            CategoriesChevronRot.Angle = isOpen ? 0 : 180;
+        }
+
         private void PortfolioLink_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is not Hyperlink link || link.NavigateUri is null)
-                return;
-
             e.Handled = true;
+
+            var url = (sender as FrameworkElement)?.Tag as string;
+            if (string.IsNullOrEmpty(url)) return;
 
             try
             {
-                Process.Start(new ProcessStartInfo(link.NavigateUri.AbsoluteUri) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
             catch (Exception)
             {
