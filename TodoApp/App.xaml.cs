@@ -58,6 +58,7 @@ namespace TodoApp
 
             var mainWindow = new MainWindow();
             mainWindow.DataContext = Services.GetRequiredService<MainViewModel>();
+            Application.Current.MainWindow = mainWindow;
             mainWindow.Show();
         }
 
