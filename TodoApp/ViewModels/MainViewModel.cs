@@ -27,6 +27,12 @@ namespace TodoApp.ViewModels
         CreatedAt
     }
 
+    public enum SubTaskSortMode
+    {
+        Manual,
+        Priority
+    }
+
     public class MainViewModel : ViewModelBase, IDisposable
     {
         private readonly ITodoRepository _todoRepo;
@@ -82,6 +88,19 @@ namespace TodoApp.ViewModels
         }
 
         public TaskSortMode SortMode => (TaskSortMode)_sortModeIndex;
+
+        private int _subSortModeIndex;
+        public int SubTaskSortModeIndex
+        {
+            get => _subSortModeIndex;
+            set
+            {
+                if (SetField(ref _subSortModeIndex, value))
+                    ApplySubTaskSorting();
+            }
+        }
+
+        public SubTaskSortMode SubSortMode => (SubTaskSortMode)_subSortModeIndex;
 
         private string _statusText = string.Empty;
         public string StatusText
@@ -224,6 +243,7 @@ namespace TodoApp.ViewModels
                 }
 
                 await RefreshCategoriesAsync();
+                ApplySubTaskSorting();
                 UpdateStatus();
                 CheckReminders(showInfo: false);
             }
@@ -467,6 +487,34 @@ namespace TodoApp.ViewModels
             TodosView.Refresh();
         }
 
+        private void ApplySubTaskSorting()
+        {
+            foreach (var root in AllTodos)
+                SortSubTasksRecursive(root);
+        }
+
+        private void SortSubTasksRecursive(TodoItemViewModel todo)
+        {
+            var subs = todo.SubTasks;
+
+            if (subs.Count >= 2)
+            {
+                var ordered = SubSortMode == SubTaskSortMode.Priority
+                    ? subs.OrderByDescending(s => s.Priority).ThenBy(s => s.SortOrder).ToList()
+                    : subs.OrderBy(s => s.SortOrder).ToList();
+
+                for (var i = 0; i < ordered.Count; i++)
+                {
+                    var at = subs.IndexOf(ordered[i]);
+                    if (at != i)
+                        subs.Move(at, i);
+                }
+            }
+
+            foreach (var sub in todo.SubTasks.ToList())
+                SortSubTasksRecursive(sub);
+        }
+
         private void OpenTimer() => _dialogs.ShowTimer();
 
         private async System.Threading.Tasks.Task AddTodo()
@@ -519,6 +567,7 @@ namespace TodoApp.ViewModels
                 var subVm = new TodoItemViewModel(dialog);
                 parent.AddSubTask(subVm);
                 AttachEvents(subVm);
+                SortSubTasksRecursive(parent);
 
                 TodosView.Refresh();
                 UpdateStatus();
@@ -592,6 +641,7 @@ namespace TodoApp.ViewModels
                 vm.Icon = updated.Icon;
                 vm.Tags = updated.Tags;
                 vm.Model.Attachments = updated.Attachments;
+                ApplySubTaskSorting();
 
                 await _todoRepo.SaveChangesAsync();
                 await RefreshCategoriesAsync();
@@ -859,6 +909,7 @@ namespace TodoApp.ViewModels
                 vm.Icon = updated.Icon;
                 vm.Tags = updated.Tags;
                 vm.Model.Attachments = updated.Attachments;
+                ApplySubTaskSorting();
 
                 await _todoRepo.SaveChangesAsync();
                 await RefreshCategoriesAsync();
