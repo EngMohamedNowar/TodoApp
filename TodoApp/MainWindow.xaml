@@ -230,39 +230,71 @@
                         Margin="6,0,0,8"/>
 
 
-                    <Button
-                        Content="All Tasks"
-                        Style="{StaticResource SidebarButtonStyle}"
-                        Command="{Binding SetFilterCommand}"
-                        CommandParameter="All"/>
+                    <Grid Margin="0,0,0,6">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="6"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Button
+                            Grid.Column="0"
+                            Content="📋  All Tasks"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Tag="{Binding Filter, Converter={StaticResource FilterActiveTagConverter}, ConverterParameter=All}"
+                            Command="{Binding SetFilterCommand}"
+                            CommandParameter="All"
+                            ToolTip="Show every task"/>
+
+                        <Button
+                            Grid.Column="2"
+                            Content="⚡  Active"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Tag="{Binding Filter, Converter={StaticResource FilterActiveTagConverter}, ConverterParameter=Active}"
+                            Command="{Binding SetFilterCommand}"
+                            CommandParameter="Active"
+                            ToolTip="Show unfinished tasks"/>
+
+                    </Grid>
 
 
-                    <Button
-                        Content="Active"
-                        Style="{StaticResource SidebarButtonStyle}"
-                        Command="{Binding SetFilterCommand}"
-                        CommandParameter="Active"/>
+                    <Grid Margin="0,0,0,6">
 
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="6"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <Button
-                        Content="Completed"
-                        Style="{StaticResource SidebarButtonStyle}"
-                        Command="{Binding SetFilterCommand}"
-                        CommandParameter="Completed"/>
+                        <Button
+                            Grid.Column="0"
+                            Content="✅  Completed"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Tag="{Binding Filter, Converter={StaticResource FilterActiveTagConverter}, ConverterParameter=Completed}"
+                            Command="{Binding SetFilterCommand}"
+                            CommandParameter="Completed"
+                            ToolTip="Show finished tasks"/>
 
+                        <Button
+                            Grid.Column="2"
+                            Content="★  Starred"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Tag="{Binding Filter, Converter={StaticResource FilterActiveTagConverter}, ConverterParameter=Starred}"
+                            Command="{Binding SetFilterCommand}"
+                            CommandParameter="Starred"
+                            ToolTip="Show starred tasks"/>
 
-                    <Button
-                        Content="★  Starred"
-                        Style="{StaticResource SidebarButtonStyle}"
-                        Command="{Binding SetFilterCommand}"
-                        CommandParameter="Starred"/>
+                    </Grid>
 
 
                     <Button
                         Content="🗄  Archive"
-                        Style="{StaticResource SidebarButtonStyle}"
+                        Style="{StaticResource FilterButtonStyle}"
+                        Tag="{Binding Filter, Converter={StaticResource FilterActiveTagConverter}, ConverterParameter=Archived}"
                         Command="{Binding SetFilterCommand}"
-                        CommandParameter="Archived"/>
+                        CommandParameter="Archived"
+                        ToolTip="Show archived tasks"/>
 
                 </StackPanel>
 
