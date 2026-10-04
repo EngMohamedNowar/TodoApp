@@ -142,6 +142,14 @@
                                         </BeginStoryboard>
                                     </Trigger.ExitActions>
                                 </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                                    <Setter TargetName="hoverOverlay" Property="Opacity" Value="1"/>
+                                </Trigger>
+
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="border" Property="Opacity" Value="0.4"/>
+                                </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -214,6 +222,15 @@
                                         </BeginStoryboard>
                                     </Trigger.ExitActions>
                                 </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                                    <Setter TargetName="hoverOverlay" Property="Background" Value="{DynamicResource AccentSoftBrush}"/>
+                                    <Setter TargetName="hoverOverlay" Property="Opacity" Value="1"/>
+                                </Trigger>
+
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="border" Property="Opacity" Value="0.4"/>
+                                </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -224,30 +241,57 @@
             <Style x:Key="PrimaryButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
-                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="FontSize" Value="14"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Height" Value="36"/>
+                <Setter Property="Height" Value="38"/>
+                <Setter Property="SnapsToDevicePixels" Value="True"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8"
-                                    RenderTransformOrigin="0.5,0.5">
-                                <Border.RenderTransform>
+                            <Grid x:Name="root" RenderTransformOrigin="0.5,0.5">
+                                <Grid.RenderTransform>
                                     <ScaleTransform x:Name="scale" ScaleX="1" ScaleY="1"/>
-                                </Border.RenderTransform>
-                                <Grid>
-                                    <Border x:Name="hoverOverlay" CornerRadius="8" Background="Black" Opacity="0"/>
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
+                                </Grid.RenderTransform>
+
+                                <Border x:Name="border"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="9">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#000000" BlurRadius="16"
+                                                          ShadowDepth="2" Opacity="0.28" Direction="270"/>
+                                    </Border.Effect>
+
+                                    <Grid>
+                                        <!-- soft top sheen for depth -->
+                                        <Border CornerRadius="9">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="#2BFFFFFF" Offset="0"/>
+                                                    <GradientStop Color="#00FFFFFF" Offset="0.6"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                        </Border>
+
+                                        <Border x:Name="hoverOverlay" CornerRadius="9"
+                                                Background="#000000" Opacity="0"/>
+
+                                        <ContentPresenter HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Trigger.EnterActions>
                                         <BeginStoryboard>
                                             <Storyboard>
-                                                <DoubleAnimation Storyboard.TargetName="hoverOverlay" Storyboard.TargetProperty="Opacity" To="0.12" Duration="0:0:0.12"/>
+                                                <DoubleAnimation Storyboard.TargetName="hoverOverlay" Storyboard.TargetProperty="Opacity" To="0.10" Duration="0:0:0.12"/>
                                             </Storyboard>
                                         </BeginStoryboard>
                                     </Trigger.EnterActions>
@@ -259,6 +303,7 @@
                                         </BeginStoryboard>
                                     </Trigger.ExitActions>
                                 </Trigger>
+
                                 <Trigger Property="IsPressed" Value="True">
                                     <Trigger.EnterActions>
                                         <BeginStoryboard>
@@ -282,6 +327,14 @@
                                         </BeginStoryboard>
                                     </Trigger.ExitActions>
                                 </Trigger>
+
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter TargetName="border" Property="BorderBrush" Value="#B3FFFFFF"/>
+                                </Trigger>
+
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="root" Property="Opacity" Value="0.4"/>
+                                </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
@@ -295,22 +348,47 @@
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush2}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Height" Value="36"/>
+                <Setter Property="Height" Value="38"/>
+                <Setter Property="SnapsToDevicePixels" Value="True"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
-                            <Border x:Name="border" Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="8" RenderTransformOrigin="0.5,0.5">
-                                <Border.RenderTransform>
+                            <Grid x:Name="root" RenderTransformOrigin="0.5,0.5">
+                                <Grid.RenderTransform>
                                     <ScaleTransform x:Name="scale" ScaleX="1" ScaleY="1"/>
-                                </Border.RenderTransform>
-                                <Grid>
-                                    <Border x:Name="hoverOverlay" CornerRadius="7" Background="{StaticResource InputBrush}" Opacity="0"/>
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
-                            </Border>
+                                </Grid.RenderTransform>
+
+                                <Border x:Name="border"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="9">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#000000" BlurRadius="12"
+                                                          ShadowDepth="1" Opacity="0.20" Direction="270"/>
+                                    </Border.Effect>
+
+                                    <Grid>
+                                        <Border CornerRadius="9">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="#0EFFFFFF" Offset="0"/>
+                                                    <GradientStop Color="#00FFFFFF" Offset="0.7"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                        </Border>
+
+                                        <Border x:Name="hoverOverlay" CornerRadius="9"
+                                                Background="{StaticResource InputBrush}" Opacity="0"/>
+
+                                        <ContentPresenter HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
@@ -330,6 +408,7 @@
                                         </BeginStoryboard>
                                     </Trigger.ExitActions>
                                 </Trigger>
+
                                 <Trigger Property="IsPressed" Value="True">
                                     <Trigger.EnterActions>
                                         <BeginStoryboard>
@@ -352,11 +431,21 @@
                                         </BeginStoryboard>
                                     </Trigger.ExitActions>
                                 </Trigger>
+
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+                                    <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                </Trigger>
+
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="root" Property="Opacity" Value="0.4"/>
+                                </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
             </Style>
+
 
             <!-- ===================== TextBox ===================== -->
             <Style TargetType="TextBox">
