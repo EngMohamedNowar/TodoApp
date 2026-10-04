@@ -660,21 +660,6 @@
             </Style>
 
 
-            <!-- ===================== Sidebar status chip ===================== -->
-            <Style x:Key="SidebarChipStyle" TargetType="Border">
-                <Setter Property="Background" Value="{StaticResource InputBrush}"/>
-                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush2}"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Padding" Value="8,1.5"/>
-                <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentHoverBrush}"/>
-                <Setter Property="TextElement.FontSize" Value="10.5"/>
-                <Setter Property="TextElement.FontWeight" Value="SemiBold"/>
-                <Setter Property="HorizontalAlignment" Value="Right"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-            </Style>
-
-
             <!-- ===================== TextBox ===================== -->
             <Style TargetType="TextBox">
                 <Setter Property="Background" Value="{StaticResource InputBrush}"/>

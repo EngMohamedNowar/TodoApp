@@ -222,30 +222,7 @@
 
                 <StackPanel
                     Grid.Row="2"
-                    Margin="0,0,0,16">
-
-                    <Grid Margin="0,0,0,10">
-
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock
-                            Grid.Column="0"
-                            Text="FILTERS"
-                            Style="{StaticResource SectionHeaderStyle}"
-                            Margin="0"/>
-
-                        <Border
-                            Grid.Column="1"
-                            Style="{StaticResource SidebarChipStyle}"
-                            ToolTip="Current filter">
-                            <TextBlock Text="{Binding Filter}"/>
-                        </Border>
-
-                    </Grid>
-
+                    Margin="0,14,0,16">
 
                     <Grid Margin="0,0,0,6">
 
@@ -322,29 +299,6 @@
 
                 <StackPanel Grid.Row="3" Margin="0,0,0,16">
 
-                    <Grid Margin="0,0,0,10">
-
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock
-                            Grid.Column="0"
-                            Text="CATEGORIES"
-                            Style="{StaticResource SectionHeaderStyle}"
-                            Margin="0"/>
-
-                        <Border
-                            Grid.Column="1"
-                            Style="{StaticResource SidebarChipStyle}"
-                            ToolTip="Current category">
-                            <TextBlock Text="{Binding SelectedCategory}"/>
-                        </Border>
-
-                    </Grid>
-
-
                     <ListBox
                         ItemsSource="{Binding Categories}"
                         SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
@@ -389,34 +343,6 @@
                 <!-- ================================================= -->
 
                 <StackPanel Grid.Row="5" Margin="0,0,0,16">
-
-
-                    <Grid Margin="0,0,0,10">
-
-                        <Grid.ColumnDefinitions>
-
-                            <ColumnDefinition Width="*"/>
-
-                            <ColumnDefinition Width="Auto"/>
-
-                        </Grid.ColumnDefinitions>
-
-
-                        <TextBlock
-                            Grid.Column="0"
-                            Text="PROGRESS"
-                            Style="{StaticResource SectionHeaderStyle}"
-                            Margin="0"/>
-
-
-                        <Border
-                            Grid.Column="1"
-                            Style="{StaticResource SidebarChipStyle}"
-                            ToolTip="Completion">
-                            <TextBlock Text="{Binding CompletionPercentage, StringFormat={}{0}%}"/>
-                        </Border>
-
-                    </Grid>
 
 
                     <!-- Progress Bar -->
