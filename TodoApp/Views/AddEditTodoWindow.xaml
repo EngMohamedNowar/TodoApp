@@ -1,6 +1,8 @@
 <Window x:Class="TodoApp.Views.AddEditTodoWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:helpers="clr-namespace:TodoApp.Helpers"
+        helpers:WindowTheme.DarkTitleBar="True"
         Title="Task"
         Width="640"
         SizeToContent="Height"
@@ -75,14 +77,14 @@
                 <ComboBox x:Name="IconBox"
                           Grid.Column="0"
                           Width="64"
-                          Height="44"
+                          Height="48"
                           FontSize="20"
                           SelectedIndex="0"/>
 
                 <TextBox x:Name="TitleBox"
                          Grid.Column="2"
-                         Height="44"
-                         FontSize="19"
+                         Height="48"
+                         FontSize="20"
                          FontWeight="SemiBold"
                          Padding="10,0"
                          VerticalContentAlignment="Center"
@@ -102,7 +104,7 @@
 
             <TextBox x:Name="DescriptionBox"
                      Grid.Row="3"
-                     FontSize="13.5"
+                     FontSize="15"
                      Padding="10,8"
                      TextWrapping="Wrap"
                      AcceptsReturn="True"
@@ -143,7 +145,7 @@
 
                 <ComboBox x:Name="CategoryBox"
                           Grid.Row="1" Grid.Column="0"
-                          Height="40"
+                          Height="46"
                           IsEditable="True"
                           IsTextSearchEnabled="True"
                           VerticalContentAlignment="Center"
@@ -159,7 +161,7 @@
 
                 <ComboBox x:Name="PriorityBox"
                           Grid.Row="1" Grid.Column="2"
-                          Height="40"
+                          Height="46"
                           SelectedIndex="{Binding SelectedPriorityIndex}"
                           VerticalContentAlignment="Center">
 
@@ -178,7 +180,7 @@
 
                 <DatePicker x:Name="DueDatePicker"
                             Grid.Row="3" Grid.Column="0"
-                            Height="40"
+                            Height="46"
                             VerticalContentAlignment="Center"
                             SelectedDate="{Binding DueDate}"/>
 
@@ -191,7 +193,7 @@
 
                 <ComboBox x:Name="RecurrenceBox"
                           Grid.Row="3" Grid.Column="2"
-                          Height="40"
+                          Height="46"
                           SelectedIndex="{Binding RecurrenceIndex}"
                           VerticalContentAlignment="Center">
 
@@ -217,7 +219,7 @@
 
             <TextBox x:Name="TagsBox"
                      Grid.Row="6"
-                     Height="40"
+                     Height="46"
                      Padding="10,0"
                      VerticalContentAlignment="Center"
                      Margin="0,0,0,18"

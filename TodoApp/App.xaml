@@ -366,7 +366,7 @@
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush2}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Padding" Value="8"/>
-                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontSize" Value="15"/>
                 <Setter Property="SelectionBrush" Value="{DynamicResource AccentSoftBrush}"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
@@ -398,7 +398,7 @@
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush2}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Padding" Value="8,6"/>
-                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontSize" Value="14"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBox">
@@ -503,6 +503,7 @@
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush2}"/>
                 <Setter Property="BorderThickness" Value="1"/>
                 <Setter Property="Padding" Value="6"/>
+                <Setter Property="FontSize" Value="15"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
