@@ -571,6 +571,7 @@
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush2}"/>
                 <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Padding" Value="12,0"/>
                 <Setter Property="Margin" Value="0,0,6,6"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -608,7 +609,8 @@
                                                 Background="{DynamicResource AccentBrush}" Opacity="0"/>
 
                                         <ContentPresenter HorizontalAlignment="Center"
-                                                          VerticalAlignment="Center"/>
+                                                          VerticalAlignment="Center"
+                                                          Margin="{TemplateBinding Padding}"/>
                                     </Grid>
                                 </Border>
                             </Grid>

@@ -316,14 +316,13 @@
                         SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                         BorderThickness="0"
                         Background="Transparent"
-                        Margin="0,0,-6,0"
                         MaxHeight="180"
                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                         ItemContainerStyle="{StaticResource CategoryPillStyle}">
 
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="2"/>
+                                <WrapPanel Orientation="Horizontal"/>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
 
