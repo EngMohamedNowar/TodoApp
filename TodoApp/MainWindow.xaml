@@ -316,14 +316,36 @@
                         SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
                         BorderThickness="0"
                         Background="Transparent"
+                        Margin="0,0,-6,0"
                         MaxHeight="180"
-                        ItemContainerStyle="{StaticResource NavListBoxItemStyle}"/>
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                        ItemContainerStyle="{StaticResource CategoryPillStyle}">
+
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="2"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock TextTrimming="CharacterEllipsis">
+                                    <Run x:Name="catIcon" Text="🏷&#xA0;&#xA0;"/><Run Text="{Binding Mode=OneWay}"/>
+                                </TextBlock>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding}" Value="All Categories">
+                                        <Setter TargetName="catIcon" Property="Text" Value="📂&#xA0;&#xA0;"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+
+                    </ListBox>
 
                     <Button
-                        Content="Manage Categories"
-                        Style="{StaticResource SidebarButtonStyle}"
-                        FontSize="12"
-                        Margin="0,6,0,0"
+                        Content="🗂  Manage Categories"
+                        Style="{StaticResource FilterButtonStyle}"
+                        Margin="0,0,0,0"
                         Click="ManageCategories_Click"/>
 
                 </StackPanel>
