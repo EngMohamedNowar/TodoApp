@@ -382,3 +382,5 @@ publish_*/
 
 # Screenshots (keep in repo for README)
 # !screenshots/
+# MSIX packaging output
+Packaging/out/
