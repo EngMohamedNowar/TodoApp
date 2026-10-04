@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Windows;
 using TodoApp.Models;
 using TodoApp.Repositories;
@@ -95,13 +94,6 @@ namespace TodoApp.Services
             if (Owner != null) _dashboardWindow.Owner = Owner;
             _dashboardWindow.Closed += (_, _) => _dashboardWindow = null;
             _dashboardWindow.Show();
-        }
-
-        public void ShowAgent(ITodoRepository repository, Func<Task> onTasksChanged)
-        {
-            var window = new AgentWindow(repository, onTasksChanged);
-            if (Owner != null) window.Owner = Owner;
-            window.Show();
         }
 
         public bool Confirm(string message, string title = "Confirm")

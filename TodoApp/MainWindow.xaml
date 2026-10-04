@@ -185,14 +185,6 @@
                         Style="{StaticResource SecondaryButtonStyle}"
                         Command="{Binding OpenTimerCommand}"/>
 
-                    <Button
-                        Content="🤖  AI Agent"
-                        Height="36"
-                        Margin="0,0,0,4"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        Command="{Binding OpenAgentCommand}"
-                        ToolTip="Chat with your local AI model"/>
-
                     <Grid Margin="0,6,0,0">
 
                         <Grid.ColumnDefinitions>

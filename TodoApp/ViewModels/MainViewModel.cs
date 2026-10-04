@@ -127,7 +127,6 @@ namespace TodoApp.ViewModels
         public RelayCommand OpenDetailCommand { get; }
         public RelayCommand OpenDashboardCommand { get; }
         public RelayCommand OpenThemePickerCommand { get; }
-        public RelayCommand OpenAgentCommand { get; }
         public RelayCommand DeleteSelectedCommand { get; }
         public RelayCommand ClearSelectionCommand { get; }
 
@@ -183,9 +182,8 @@ namespace TodoApp.ViewModels
                 p => OpenDetail(p as TodoItemViewModel),
                 p => p is TodoItemViewModel);
             OpenDashboardCommand = new RelayCommand(_ => OpenDashboard());
-            OpenThemePickerCommand = new RelayCommand(_ => OpenThemePicker());
-            OpenAgentCommand = new RelayCommand(_ => OpenAgent());
-            DeleteSelectedCommand = new RelayCommand(
+                OpenThemePickerCommand = new RelayCommand(_ => OpenThemePicker());
+                DeleteSelectedCommand = new RelayCommand(
                 _ => DeleteSelected(),
                 _ => HasSelection);
             ClearSelectionCommand = new RelayCommand(_ => ClearSelection());
@@ -879,11 +877,6 @@ namespace TodoApp.ViewModels
         {
             _dialogs.ShowThemePicker();
             TodosView.Refresh();
-        }
-
-        private void OpenAgent()
-        {
-            _dialogs.ShowAgent(_todoRepo, LoadFromDatabaseAsync);
         }
 
         private void ClearSelection()

@@ -18,7 +18,7 @@ namespace TodoApp.Repositories
         /// The app resolves this repository from the root container, so every caller
         /// shares one <see cref="TodoDbContext"/>. EF Core contexts are not
         /// re-entrant, so saves are serialized to stop two overlapping operations
-        /// (e.g. a command handler and the AI agent) from colliding.
+        /// (e.g. a command handler and a background refresh) from colliding.
         /// </summary>
         private static readonly SemaphoreSlim SaveGate = new(1, 1);
 

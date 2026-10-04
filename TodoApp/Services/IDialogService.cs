@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using TodoApp.Models;
-using TodoApp.Repositories;
 using TodoApp.ViewModels;
 
 namespace TodoApp.Services
@@ -47,9 +44,6 @@ namespace TodoApp.Services
 
         /// <summary>Non-modal, single-instance completion dashboard.</summary>
         void ShowDashboard(IReadOnlyList<TodoItemViewModel> todos);
-
-        /// <summary>Non-modal AI agent chat window.</summary>
-        void ShowAgent(ITodoRepository repository, Func<Task> onTasksChanged);
 
         bool Confirm(string message, string title = "Confirm");
 
