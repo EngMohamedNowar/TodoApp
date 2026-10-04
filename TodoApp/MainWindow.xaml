@@ -1228,11 +1228,16 @@
                                                         Background="{StaticResource InputBrush}"
                                                         CornerRadius="6"
                                                         Padding="8,5"
-                                                        Margin="0,0,0,4">
+                                                        Margin="0,0,0,4"
+                                                        AllowDrop="True"
+                                                        DragOver="Sub_DragOver"
+                                                        Drop="Sub_Drop">
 
                                                         <Grid>
 
                                                             <Grid.ColumnDefinitions>
+
+                                                                <ColumnDefinition Width="Auto"/>
 
                                                                 <ColumnDefinition Width="Auto"/>
 
@@ -1242,14 +1247,26 @@
 
                                                             </Grid.ColumnDefinitions>
 
-                                                            <CheckBox
+                                                            <TextBlock
                                                                 Grid.Column="0"
+                                                                Text="⠿"
+                                                                FontSize="11"
+                                                                Foreground="{StaticResource TextMutedBrush}"
+                                                                VerticalAlignment="Center"
+                                                                Margin="0,0,7,0"
+                                                                Cursor="SizeAll"
+                                                                PreviewMouseLeftButtonDown="DragHandle_PreviewMouseLeftButtonDown"
+                                                                MouseMove="DragHandle_MouseMove"
+                                                                ToolTip="Drag to reorder"/>
+
+                                                            <CheckBox
+                                                                Grid.Column="1"
                                                                 IsChecked="{Binding IsCompleted, Mode=TwoWay}"
                                                                 VerticalAlignment="Center"
                                                                 Margin="0,0,8,0"/>
 
                                                             <TextBlock
-                                                                Grid.Column="1"
+                                                                Grid.Column="2"
                                                                 Text="{Binding Title}"
                                                                 FontSize="12"
                                                                 Foreground="{StaticResource TextSecondaryBrush}"
@@ -1258,7 +1275,7 @@
                                                                 TextDecorations="{Binding IsCompleted, Converter={StaticResource BoolToStrikethroughConverter}}"/>
 
                                                             <StackPanel
-                                                                Grid.Column="2"
+                                                                Grid.Column="3"
                                                                 Orientation="Horizontal"
                                                                 VerticalAlignment="Center"
                                                                 Margin="6,0,0,0">

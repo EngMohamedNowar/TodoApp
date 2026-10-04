@@ -84,6 +84,41 @@ namespace TodoApp
             }
         }
 
+        private void Sub_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effects = _draggedItem != null ? DragDropEffects.Move : DragDropEffects.None;
+            e.Handled = true;
+        }
+
+        private async void Sub_Drop(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+
+            if (sender is not FrameworkElement row || row.DataContext is not TodoItemViewModel targetVm
+                || _draggedItem == null || ReferenceEquals(_draggedItem, targetVm)
+                || DataContext is not MainViewModel viewModel)
+            {
+                return;
+            }
+
+            // Capture locally: DoDragDrop's finally block may clear the shared
+            // field as soon as this method yields at the first await.
+            var draggedItem = _draggedItem;
+
+            try
+            {
+                await viewModel.ReorderSubTaskAsync(draggedItem, targetVm);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Couldn't reorder sub-tasks: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
         private void Card_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is not FrameworkElement card || card.DataContext is not TodoItemViewModel vm) return;

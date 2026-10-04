@@ -350,6 +350,34 @@ namespace TodoApp.ViewModels
             TodosView.Refresh();
         }
 
+        public async System.Threading.Tasks.Task ReorderSubTaskAsync(TodoItemViewModel dragged, TodoItemViewModel target)
+        {
+            if (dragged == target) return;
+            if (SubSortMode != SubTaskSortMode.Manual) return;
+
+            var parent = dragged.ParentVm;
+            if (parent == null || !ReferenceEquals(parent, target.ParentVm)) return;
+
+            var siblings = parent.SubTasks;
+            var oldIndex = siblings.IndexOf(dragged);
+            var newIndex = siblings.IndexOf(target);
+            if (oldIndex < 0 || newIndex < 0) return;
+
+            siblings.Move(oldIndex, newIndex);
+
+            for (int i = 0; i < siblings.Count; i++)
+                siblings[i].SortOrder = i;
+
+            try
+            {
+                await _todoRepo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _dialogs.ShowError($"Failed to save order:\n\n{ex.Message}", "Database Error");
+            }
+        }
+
         private async void OnItemCompletionChanged(object? sender, EventArgs e)
         {
             if (sender is not TodoItemViewModel vm) return;
