@@ -19,6 +19,28 @@ namespace TodoApp.Services
 
         private static Window? Owner => Application.Current?.MainWindow;
 
+        /// <summary>
+        /// Modeless windows (timer, dashboard) are closed directly, so Windows does
+        /// not reliably hand focus back to the main window — it can stay buried
+        /// behind other apps. Bring it back to the front explicitly.
+        /// </summary>
+        private static void BringOwnerToFront()
+        {
+            var owner = Owner;
+            if (owner == null || !owner.IsLoaded) return;
+
+            if (owner.WindowState == WindowState.Minimized)
+                owner.WindowState = WindowState.Normal;
+
+            owner.Show();
+            owner.Activate();
+
+            // Topmost toggle forces the window above others even when Windows
+            // refuses a background activation.
+            owner.Topmost = true;
+            owner.Topmost = false;
+        }
+
         public TodoItem? NewTask(IReadOnlyList<string> categories)
             => ShowEditDialog(new AddEditTodoWindow(existingCategories: categories));
 
@@ -78,7 +100,11 @@ namespace TodoApp.Services
 
             _timerWindow = new PomodoroWindow();
             if (Owner != null) _timerWindow.Owner = Owner;
-            _timerWindow.Closed += (_, _) => _timerWindow = null;
+            _timerWindow.Closed += (_, _) =>
+            {
+                _timerWindow = null;
+                BringOwnerToFront();
+            };
             _timerWindow.Show();
         }
 
@@ -92,7 +118,11 @@ namespace TodoApp.Services
 
             _dashboardWindow = new DashboardWindow(new List<TodoItemViewModel>(todos));
             if (Owner != null) _dashboardWindow.Owner = Owner;
-            _dashboardWindow.Closed += (_, _) => _dashboardWindow = null;
+            _dashboardWindow.Closed += (_, _) =>
+            {
+                _dashboardWindow = null;
+                BringOwnerToFront();
+            };
             _dashboardWindow.Show();
         }
 

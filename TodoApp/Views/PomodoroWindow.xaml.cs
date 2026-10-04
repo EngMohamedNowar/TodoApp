@@ -24,6 +24,7 @@ namespace TodoApp.Views
             if (ViewModel.IsRunning)
             {
                 var result = MessageBox.Show(
+                    this,
                     "A focus session is currently running.\n\nAre you sure you want to close the timer?\nYour current session progress will be saved.",
                     "Session in Progress",
                     MessageBoxButton.YesNo,
